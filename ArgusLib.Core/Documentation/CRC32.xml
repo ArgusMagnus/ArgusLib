@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<CRC32>
+	<summary>Provides methods to calculate the CRC32 value of binary data.</summary>
+	<remarks>
+		<para>This class has no public constructor, call <see cref="CRC32.CreateTable"/> to get an instance of this class.</para>
+		<para>CRC32-calculation source: <see href="http://tools.ietf.org/html/rfc2083#page-95"/></para>
+	</remarks>
+	<example>
+		<code>
+			byte[] data1 = new byte[] { 1, 0, 255, 3, 5 };
+			byte[] data2 = new byte[] { 2, 1, 230, 10, 8 };
+			byte[] data3 = new byte[] { 1, 0, 255, 3, 5, 2, 1, 230, 10, 8 };
+
+			CRC32 crc = CRC32.CreateTable();
+			crc.Add(data1);
+
+			if (crc.CurrentCRC != crc.Calculate(data1))
+				throw new Exception("This exception should never have been thrown.");
+
+			crc.Add(data2);
+
+			if (crc.CurrentCRC != crc.Calculate(data3))
+				throw new Exception("Neither should this one.");
+		</code>
+	</example>
+</CRC32>

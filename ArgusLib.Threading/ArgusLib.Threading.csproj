@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard1.6</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ArgusLib.Core\ArgusLib.Core.csproj" />
+    <ProjectReference Include="..\ArgusLib.Exceptions\ArgusLib.Exceptions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Interlocked.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>Interlocked.g.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Interlocked.g.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Interlocked.tt</DependentUpon>
+    </Compile>
+  </ItemGroup>
+</Project>

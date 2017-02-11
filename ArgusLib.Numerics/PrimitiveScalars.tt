@@ -1,0 +1,79 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".g.cs" #>
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+string[] Types = new string[] { "Int32", "Int64", "Single", "Double"};//, "BigInteger" };
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+namespace ArgusLib.Numerics
+{
+	using System;
+	using System.Numerics;
+	using System.Globalization;
+
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+foreach (string type in Types)
+{
+string structName = $"{type}Scalar";
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+	public struct <#= structName #> : IScalar<<#= structName#>> , IComparable<<#= structName #>>
+	{
+		readonly <#= type #> _value;
+
+		public <#= structName #>(<#= type #> value)
+		{
+			_value = value;
+		}
+
+		public static implicit operator <#= structName #>(<#= type #> value) => new <#= structName #>(value);
+		public static implicit operator <#= type #>(<#= structName #> value) => value._value;
+
+		<#= structName #> IScalar<<#= structName #>>.Add(<#= structName #> value) => this._value + value._value;
+		<#= structName #> IScalar<<#= structName #>>.Subtract(<#= structName #> value) => this._value - value._value;
+		<#= structName #> IScalar<<#= structName #>>.Multiply(<#= structName #> value) => this._value * value._value;
+		<#= structName #> IScalar<<#= structName #>>.Divide(<#= structName #> value) => this._value / value._value;
+		<#= structName #> IScalar<<#= structName #>>.Negate() => -this._value;
+		<#= structName #> IScalar<<#= structName #>>.Zero { get { return default(<#= type #>); } }
+		<#= structName #> IScalar<<#= structName #>>.One { get { return (<#= type #>)1; } }
+		bool IScalar<<#= structName #>>.IsZero { get { return this._value == default(<#=type#>); } }
+		bool IScalar<<#= structName #>>.IsOne { get { return this._value == 1; } }
+		<#= structName #> IScalar<<#= structName #>>.Abs { get { return Math.Abs(this._value); } }
+		bool IEquatable<<#= structName #>>.Equals(<#= structName #> value) => this._value == value._value;
+		int IComparable<<#= structName #>>.CompareTo(<#= structName #> value) => this._value == value._value ? 0 : (this._value < value._value ? -1 : 1);
+
+		public static <#= structName #> operator +(<#= structName #> a, <#= structName #> b) => a._value + b._value;
+		public static <#= structName #> operator -(<#= structName #> a, <#= structName #> b) => a._value - b._value;
+		public static <#= structName #> operator *(<#= structName #> a, <#= structName #> b) => a._value * b._value;
+		public static <#= structName #> operator /(<#= structName #> a, <#= structName #> b) => a._value / b._value;
+		public static <#= structName #> operator -(<#= structName #> scalar) => -scalar._value;
+		public static bool operator ==(<#= structName #> a, <#= structName #> b) => a._value == b._value;
+		public static bool operator !=(<#= structName #> a, <#= structName #> b) => a._value != b._value;
+		public static bool operator <(<#= structName #> a, <#= structName #> b) => a._value < b._value;
+		public static bool operator >(<#= structName #> a, <#= structName #> b) => a._value > b._value;
+		public static bool operator <=(<#= structName #> a, <#= structName #> b) => a._value <= b._value;
+		public static bool operator >=(<#= structName #> a, <#= structName #> b) => a._value >= b._value;
+
+		public override bool Equals(object obj) => obj is <#= structName #> ? ((<#= structName #>)obj)._value == this._value : false;
+		public override int GetHashCode() => this._value.GetHashCode();
+		public override string ToString() => this._value.ToString();
+		public string ToString(string format = null, IFormatProvider formatProvider = null) => this._value.ToString(format, formatProvider);
+
+		public static bool TryParse(string text, out <#= structName #> value, string format = null, IFormatProvider formatProvider = null)
+		{
+			format = format?.ToUpperInvariant() ?? "G";
+			NumberStyles numStyle = format.StartsWith("X") ? NumberStyles.HexNumber : NumberStyles.Any;
+			<#= type #> temp;
+			bool success = <#= type #>.TryParse(text, numStyle, formatProvider, out temp);
+			value = temp;
+			return success;
+		}
+
+		TryParseHandler<<#= structName #>> IParsable<<#= structName #>>.GetTryParseHandler() => TryParse;
+	}
+
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+}
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+}

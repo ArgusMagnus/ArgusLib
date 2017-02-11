@@ -1,0 +1,132 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension=".g.cs" #>
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+string[] Types = new string[] { "Int32", "Int64", "Single", "Double" };
+string[] IntTypes = new string[] { "Int32", "Int64" };
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+using System;
+using System.Threading;
+
+namespace ArgusLib.Threading
+{
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+foreach (string type in Types)
+{
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+	/// <summary>
+	/// Provides thread-safe access to a <see cref="<#= type #>"/> value.
+	/// </summary>
+	/// <seealso cref="Interlocked{T}"/>
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+foreach (string otherType in Types)
+{
+	if (type == otherType)
+		continue;
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+	/// <seealso cref="Interlocked<#= otherType #>"/>
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+}
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+	public sealed class Interlocked<#= type #>
+	{
+		<#= type #> _value;
+
+		public <#= type #> Value
+		{
+			get { return Interlocked.CompareExchange(ref _value, default(<#= type #>), default(<#= type #>)); }
+			set { Interlocked.Exchange(ref _value, value); }
+		}
+
+		public Interlocked<#= type #>(<#= type #> value = default(<#= type #>))
+		{
+			this.Value = value;
+		}
+
+		/// <seealso cref="Interlocked.Exchange(ref <#= type #>, <#= type #>)"/>
+		public <#= type #> Exchange(<#= type #> value)
+		{
+			return Interlocked.Exchange(ref _value, value);
+		}
+
+		/// <seealso cref="Interlocked.CompareExchange(ref <#= type #>, <#= type #>, <#= type #>)"/>
+		public <#= type #> CompareExchange(<#= type #> value, <#= type #> comparand)
+		{
+			return Interlocked.CompareExchange(ref _value, value, comparand);
+		}
+
+		/// <summary>
+		/// Sets <see cref="Value"/> to the maximum of <see cref="Value"/> and <paramref name="comparand"/>
+		/// in a thread-safe manner and returns the new value.
+		/// </summary>
+		/// <returns>The new value (maximum) of <see cref="Value"/>.</returns>
+		public <#= type #> Max(<#= type #> comparand)
+		{
+			var val = this.Value;
+			while (comparand > val)
+			{
+				val = comparand;
+				comparand = Interlocked.Exchange(ref _value, val);
+			}
+			return val;
+		}
+
+		/// <summary>
+		/// Sets <see cref="Value"/> to the minimum of <see cref="Value"/> and <paramref name="comparand"/>
+		/// in a thread-safe manner and returns the new value.
+		/// </summary>
+		/// <returns>The new value (minimum) of <see cref="Value"/>.</returns>
+		public <#= type #> Min(<#= type #> comparand)
+		{
+			var val = this.Value;
+			while (comparand < val)
+			{
+				val = comparand;
+				comparand = Interlocked.Exchange(ref _value, val);
+			}
+			return val;
+		}
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+if (IntTypes.Contains(type))
+{
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+
+		/// <summary>
+		/// Increments the <see cref="Value"/> in a thread-safe manner and returns the new value.
+		/// </summary>
+		/// <seealso cref="Interlocked.Increment(ref <#= type #>)"/>
+		public <#= type #> Increment() { return Interlocked.Increment(ref _value); }
+
+		/// <summary>
+		/// Decrements the <see cref="Value"/> in a thread-safe manner and returns the new value.
+		/// </summary>
+		/// <seealso cref="Interlocked.Decrement(ref <#= type #>)"/>
+		public <#= type #> Decrement() { return Interlocked.Decrement(ref _value); }
+
+		/// <summary>
+		/// Sets <see cref="Value"/> to the sum of <see cref="Value"/> and <paramref name="summand"/>
+		/// in a thread-safe manner and returns the new value.
+		/// </summary>
+		/// <seealso cref="Interlocked.Add(ref <#= type #>, <#= type #>)"/>
+		public <#= type #> Add(<#= type #> summand) { return Interlocked.Add(ref _value, summand); }
+
+		/// <summary>
+		/// Sets <see cref="Value"/> to the difference of <see cref="Value"/> and <paramref name="subtrahend"/>
+		/// in a thread-safe manner and returns the new value.
+		/// </summary>
+		/// <seealso cref="Interlocked.Add(ref <#= type #>, <#= type #>)"/>
+		public <#= type #> Subtract(<#= type #> subtrahend) { return Interlocked.Add(ref _value, -subtrahend); }
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+}
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+
+		public static implicit operator <#= type #>(Interlocked<#= type #> value) { return value.Value; }
+	}
+
+<# // ------------------------------------------------------ Code Start ------------------------------------------------------
+}
+// --------------------------------------------------------- Code End ----------------------------------------------------- #>
+}
