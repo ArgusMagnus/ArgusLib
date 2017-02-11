@@ -8,9 +8,6 @@ Ported to C# from musl libc source:
 http://git.musl-libc.org/cgit/musl/tree/src/math/acosh.c?h=v1.1.16
 */
 #endregion
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ArgusLib
 {
