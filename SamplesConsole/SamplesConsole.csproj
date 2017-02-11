@@ -8,7 +8,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>SamplesConsole</RootNamespace>
     <AssemblyName>SamplesConsole</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
@@ -53,6 +53,14 @@
     <ProjectReference Include="..\ArgusLib.Core\ArgusLib.Core.csproj">
       <Project>{fcbf061a-0c45-4507-8026-24fdc6e253cb}</Project>
       <Name>ArgusLib.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ArgusLib.Functions\ArgusLib.Functions.csproj">
+      <Project>{b1d05ed5-16f9-41de-b886-f1808ecd72d7}</Project>
+      <Name>ArgusLib.Functions</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ArgusLib.Random\ArgusLib.Random.csproj">
+      <Project>{e5030e23-b211-46de-8df9-fb16bb6703a2}</Project>
+      <Name>ArgusLib.Random</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

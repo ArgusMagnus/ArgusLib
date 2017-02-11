@@ -1,1 +1,0 @@
-- Reimplement ArgusLib.Functions from http://git.musl-libc.org/cgit/musl/tree/src/math

@@ -1,7 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
+    <TargetFramework>netstandard1.3</TargetFramework>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.0" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ArgusLib.Core\ArgusLib.Core.csproj" />
     <ProjectReference Include="..\ArgusLib.Exceptions\ArgusLib.Exceptions.csproj" />

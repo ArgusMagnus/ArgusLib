@@ -39,7 +39,6 @@ namespace ArgusLib
 	{
 		public static double Gamma(double x)
 		{
-			const double p2p1023 = 8.9884656743115795386465259539451e+307;
 			const double gmhalf = 5.524680040776729583740234375;
 
 			double absx, y;
@@ -102,7 +101,7 @@ namespace ArgusLib
 						return 0;
 					return -0.0;
 				}
-				x *= p2p1023;
+				x *= Constants.Pow2P1023;
 				return x;
 			}
 

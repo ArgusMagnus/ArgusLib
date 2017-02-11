@@ -46,7 +46,7 @@ namespace ArgusLib
 				P3 = -0.758397934778766047437, /* 0xbfe844cb, 0xbee751d9 */
 				P4 = 0.145996192886612446982; /* 0x3fc2b000, 0xd4e4edd7 */
 
-			const double x1p54 = 1.0 / (1UL << 54);
+			const double x1p54 = (1UL << 54);
 
 			Ieee754Double u = new Ieee754Double() { Value = x };
 			double r, s, t, w;

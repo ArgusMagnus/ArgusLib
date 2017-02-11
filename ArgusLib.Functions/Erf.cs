@@ -133,8 +133,6 @@ namespace ArgusLib
 				qq4 = 1.32494738004321644526e-04, /* 0x3F215DC9, 0x221C1A10 */
 				qq5 = -3.96022827877536812320e-06; /* 0xBED09C43, 0x42A26120 */
 
-			const double p2m1022 = 2.2250738585072013830902327173324e-308; // 0x1p - 1022;
-
 			double r, s, z, y;
 			uint ix = GET_HIGH_WORD(x);
 			int signBit = (int)(ix >> 31);
@@ -160,7 +158,7 @@ namespace ArgusLib
 			if (ix < 0x40180000)  /* 0.84375 <= |x| < 6 */
 				y = 1 - erfc2(ix, x);
 			else
-				y = 1 - p2m1022;
+				y = 1 - Constants.Pow2M1022;
 			return signBit == 1 ? -y : y;
 		}
 
@@ -178,8 +176,6 @@ namespace ArgusLib
 				qq3 = 5.08130628187576562776e-03, /* 0x3F74D022, 0xC4D36B0F */
 				qq4 = 1.32494738004321644526e-04, /* 0x3F215DC9, 0x221C1A10 */
 				qq5 = -3.96022827877536812320e-06; /* 0xBED09C43, 0x42A26120 */
-
-			const double p2m1022 = 2.2250738585072013830902327173324e-308; // 0x1p - 1022;
 
 			double r, s, z, y;
 			uint ix = GET_HIGH_WORD(x);
@@ -208,7 +204,7 @@ namespace ArgusLib
 			{  /* 0.84375 <= |x| < 28 */
 				return signBit == 1 ? 2 - erfc2(ix, x) : erfc2(ix, x);
 			}
-			return signBit == 1 ? 2 - p2m1022 : p2m1022 * p2m1022;
+			return signBit == 1 ? 2 - Constants.Pow2M1022 : Constants.Pow2M1022 * Constants.Pow2M1022;
 		}
 
 		static double erfc1(double x)

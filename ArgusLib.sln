@@ -3,27 +3,28 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26127.3
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Core", "ArgusLib.Core\ArgusLib.Core.csproj", "{FCBF061A-0C45-4507-8026-24FDC6E253CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Core", "ArgusLib.Core\ArgusLib.Core.csproj", "{FCBF061A-0C45-4507-8026-24FDC6E253CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Runtime.InteropServices", "ArgusLib.Runtime.InteropServices\ArgusLib.Runtime.InteropServices.csproj", "{EE32B8A7-4DBD-4BD9-A7AB-DF5D11C2772F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Runtime.InteropServices", "ArgusLib.Runtime.InteropServices\ArgusLib.Runtime.InteropServices.csproj", "{EE32B8A7-4DBD-4BD9-A7AB-DF5D11C2772F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{135CE2DA-A155-4D35-999B-CCE574169DA2}"
 	ProjectSection(SolutionItems) = preProject
+		.gitattributes = .gitattributes
+		.gitignore = .gitignore
 		LICENSE = LICENSE
-		ToDo.txt = ToDo.txt
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Numerics", "ArgusLib.Numerics\ArgusLib.Numerics.csproj", "{E3CA84A8-8BBA-40BF-BCA1-9C2DF00F309A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Numerics", "ArgusLib.Numerics\ArgusLib.Numerics.csproj", "{E3CA84A8-8BBA-40BF-BCA1-9C2DF00F309A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Exceptions", "ArgusLib.Exceptions\ArgusLib.Exceptions.csproj", "{46C7EFBF-3672-4EA3-97A2-9BB21AFBE896}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Exceptions", "ArgusLib.Exceptions\ArgusLib.Exceptions.csproj", "{46C7EFBF-3672-4EA3-97A2-9BB21AFBE896}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Draft", "ArgusLib.Draft\ArgusLib.Draft.csproj", "{19E050E5-4370-4C99-985D-EC40BDFB581F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Draft", "ArgusLib.Draft\ArgusLib.Draft.csproj", "{19E050E5-4370-4C99-985D-EC40BDFB581F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Functions", "ArgusLib.Functions\ArgusLib.Functions.csproj", "{B1D05ED5-16F9-41DE-B886-F1808ECD72D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Functions", "ArgusLib.Functions\ArgusLib.Functions.csproj", "{B1D05ED5-16F9-41DE-B886-F1808ECD72D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Random", "ArgusLib.Random\ArgusLib.Random.csproj", "{E5030E23-B211-46DE-8DF9-FB16BB6703A2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Random", "ArgusLib.Random\ArgusLib.Random.csproj", "{E5030E23-B211-46DE-8DF9-FB16BB6703A2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArgusLib.Threading", "ArgusLib.Threading\ArgusLib.Threading.csproj", "{2A615FBC-C095-4DC5-8CD1-A7350427B14C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ArgusLib.Threading", "ArgusLib.Threading\ArgusLib.Threading.csproj", "{2A615FBC-C095-4DC5-8CD1-A7350427B14C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SamplesConsole", "SamplesConsole\SamplesConsole.csproj", "{73E77BB7-D3F9-4797-B62D-24666D1132EF}"
 EndProject
