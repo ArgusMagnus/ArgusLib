@@ -27,8 +27,8 @@ namespace ArgusLib
 				return x + y;
 			if (ux.Bits == uy.Bits)
 				return y;
-			ax = ux.Bits & unchecked((ulong)-1) / 2;
-			ay = uy.Bits & unchecked((ulong)-1) / 2;
+			ax = ux.Bits & unchecked((ulong)-1L) / 2;
+			ay = uy.Bits & unchecked((ulong)-1L) / 2;
 			if (ax == 0)
 			{
 				if (ay == 0)
