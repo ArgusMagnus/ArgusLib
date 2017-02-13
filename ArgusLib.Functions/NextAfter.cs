@@ -21,7 +21,6 @@ namespace ArgusLib
 			Ieee754Double ux = new Ieee754Double() { Value = x };
 			Ieee754Double uy = new Ieee754Double() { Value = y };
 			ulong ax, ay;
-			int e;
 
 			if (double.IsNaN(x) || double.IsNaN(y))
 				return x + y;
@@ -40,7 +39,7 @@ namespace ArgusLib
 			else
 				ux.Bits++;
 
-			//e = (int)(ux.Bits >> 52) & 0x7ff;
+			//int e = (int)(ux.Bits >> 52) & 0x7ff;
 			///* raise overflow if ux.f is infinite and x is finite */
 			//if (e == 0x7ff)
 			//	FORCE_EVAL(x + x);

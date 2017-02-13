@@ -16,7 +16,7 @@ namespace ArgusLib
 	{
 		public abstract class EnumExCore<T> where T : class
 		{
-			internal EnumExCore() { }
+			internal protected EnumExCore() { }
 
 			public static bool HasFlag<TEnum>(TEnum value, TEnum flag)
 				where TEnum : struct, T

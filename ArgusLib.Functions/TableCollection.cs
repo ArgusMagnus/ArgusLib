@@ -344,7 +344,6 @@ namespace ArgusLib
 				};
 
 			#endregion
-
 		}
 	}
 }
