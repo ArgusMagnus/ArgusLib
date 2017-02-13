@@ -5,7 +5,7 @@ Copyright (C) 2017 Tobias Meyer
 License: Microsoft Reciprocal License (MS-RL)
 
 Ported to C# from musl libc source:
-http://git.musl-libc.org/cgit/musl/tree/src/math/acosh.c?h=v1.1.16
+http://git.musl-libc.org/cgit/musl/tree/src/math/j1.c?h=v1.1.16
 */
 /* origin: FreeBSD /usr/src/lib/msun/src/e_j1.c */
 /*
