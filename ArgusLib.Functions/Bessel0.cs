@@ -68,6 +68,9 @@ namespace ArgusLib
 {
 	public static partial class Functions
 	{
+		/// <summary>
+		/// Returns the value of the zeroth order bessel function of the first kind at <paramref name="x"/>.
+		/// </summary>
 		public static double BesselJ0(double x)
 		{
 			/* R0/S0 on [0, 2.00] */
@@ -93,7 +96,7 @@ namespace ArgusLib
 			if (ix >= 0x40000000)
 			{  /* |x| >= 2 */
 			   /* large ulp error near zeros: 2.4, 5.52, 8.6537,.. */
-				return common(ix, x, 0);
+				return Bessel0Common(ix, x, 0);
 			}
 
 			/* 1 - x*x/4 + x*x*R(x^2)/S(x^2) */
@@ -114,6 +117,9 @@ namespace ArgusLib
 			return 1 - x;
 		}
 
+		/// <summary>
+		/// Returns the value of the zeroth order bessel function of the second kind at <paramref name="x"/>.
+		/// </summary>
 		public static double BesselY0(double x)
 		{
 			const double
@@ -147,7 +153,7 @@ namespace ArgusLib
 			if (ix >= 0x40000000)
 			{  /* x >= 2 */
 			   /* large ulp errors near zeros: 3.958, 7.086,.. */
-				return common(ix, x, 1);
+				return Bessel0Common(ix, x, 1);
 			}
 
 			/* U(x^2)/V(x^2) + (2/pi)*j0(x)*log(x) */
@@ -165,7 +171,7 @@ namespace ArgusLib
 		/// <summary>
 		/// Common method when |x|>=2
 		/// </summary>
-		static double common(uint ix, double x, int y0)
+		static double Bessel0Common(uint ix, double x, int y0)
 		{
 			double s, c, ss, cc, z;
 
