@@ -5,21 +5,23 @@ using System.Reflection;
 
 namespace ArgusLib
 {
-	public sealed class WeakDelegateReference : Internal.WeakDelegateReferenceCore<MulticastDelegate>
-	{
-		WeakDelegateReference()
-			: base() { }
-	}
 
-	public sealed class WeakDelegateReference<T> where T : class
+	public sealed class WeakDelegate<T> : IDisposable where T : class
 	{
+		static WeakDelegate()
+		{
+			var handlerType = typeof(T).GetTypeInfo();
+			if (!typeof(Delegate).GetTypeInfo().IsAssignableFrom(handlerType) || handlerType.IsAbstract)
+				throw new GenericTypeParameterNotSupportetException<T>();
+		}
+
 		readonly List<Tuple<MethodInfo, WeakReference<object>>> _invocationList;
 		readonly WeakReference<T> _delegate;
 
 		object Lock => _invocationList;
 		object StaticTarget => _invocationList;
 
-		internal WeakDelegateReference(T @delegate)
+		public WeakDelegate(T @delegate)
 		{
 			_delegate = new WeakReference<T>(@delegate);
 			_invocationList = new List<Tuple<MethodInfo, WeakReference<object>>>(0);
@@ -115,26 +117,16 @@ namespace ArgusLib
 						}
 					}
 				}
+				_invocationList.Capacity = _invocationList.Count;
 			}
 		}
-	}
 
-	namespace Internal
-	{
-		public abstract class WeakDelegateReferenceCore<T> where T : class
+		public void Dispose()
 		{
-			static WeakDelegateReferenceCore()
+			lock (Lock)
 			{
-				if (typeof(T) != typeof(MulticastDelegate))
-					throw new GenericTypeParameterNotSupportetException<T>();
-			}
-
-			internal protected WeakDelegateReferenceCore() { }
-
-			public static WeakDelegateReference<TDelegate> Create<TDelegate>(TDelegate @delegate)
-				where TDelegate : class, T
-			{
-				return new WeakDelegateReference<TDelegate>(@delegate);
+				_invocationList.Clear();
+				_delegate.SetTarget(null);
 			}
 		}
 	}

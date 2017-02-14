@@ -11,6 +11,7 @@ using System.Text;
 using System.Linq;
 using System.Collections.Generic;
 using ArgusLib.Diagnostics.Tracing;
+using System.Reflection;
 
 namespace ArgusLib
 {
@@ -309,7 +310,6 @@ namespace ArgusLib
 				dict.Remove(key);
 		}
 
-
 		public static bool IsEven(this int val) => (val & 1) == 0;
 		public static bool IsEven(this long val) => (val & 1L) == 0L;
 		public static bool IsEven(this uint val) => (val & 1U) == 0;
@@ -318,5 +318,28 @@ namespace ArgusLib
 		public static bool IsPowerOfTwo(this long val) => (val > 0L) && ((val & (val - 1L)) == 0L);
 		public static bool IsPowerOfTwo(this uint val) => (val > 0U) && ((val & (val - 1U)) == 0U);
 		public static bool IsPowerOfTwo(this ulong val) => (val > 0UL) && ((val & (val - 1UL)) == 0UL);
+
+		public static Delegate Cast(this Delegate @delegate, Type newType)
+		{
+			if (newType == null)
+				throw new ArgumentNullException(nameof(newType));
+
+			var invocationList = @delegate.GetInvocationList();
+			Delegate[] newList = new Delegate[invocationList.Length];
+
+			try
+			{
+				for (int i = 0; i < invocationList.Length; i++)
+					newList[i] = invocationList[i].GetMethodInfo().CreateDelegate(newType, invocationList[i].Target);
+			}
+			catch (ArgumentException) { return null; }
+
+			return Delegate.Combine(newList);
+		}
+
+		public static TDelegate Cast<TDelegate>(this Delegate @delegate) where TDelegate : class
+		{
+			return @delegate.Cast(typeof(TDelegate)) as TDelegate;
+		}
 	}
 }
