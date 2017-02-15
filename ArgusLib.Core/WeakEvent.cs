@@ -20,7 +20,17 @@ namespace ArgusLib
 			AddHandler(typeof(TEventSource), eventSource, eventName, handler);
 		}
 
-		public static void AddHandler<TSender, TEventArgs>(Type eventSourceType, object eventSource, string eventName, Action<TSender, TEventArgs> handler)
+		public static void AddHandler<TSender, TEventArgs>(Type eventSourceType, string staticEventName, Action<TSender,TEventArgs> handler)
+		{
+			AddHandler(eventSourceType, null, staticEventName, handler);
+		}
+
+		public static void AddHandler<TSender, TEventArgs>(object eventSource, string eventName, Action<TSender, TEventArgs> handler)
+		{
+			AddHandler(eventSource.GetType(), eventSource, eventName, handler);
+		}
+
+		static void AddHandler<TSender, TEventArgs>(Type eventSourceType, object eventSource, string eventName, Action<TSender, TEventArgs> handler)
 		{
 			if (eventSourceType == null)
 				throw new ArgumentNullException(nameof(eventSourceType));
@@ -28,6 +38,11 @@ namespace ArgusLib
 			EventInfo eventInfo = eventSourceType.GetRuntimeEvent(eventName);
 			if (eventInfo == null)
 				throw new ArgumentException($"The class {eventSourceType.FullName} has no public event named '{eventName}'.");
+
+			if (eventInfo.AddMethod.IsStatic && eventSource != null)
+				throw new ArgumentException($"{eventName} is a static event, {nameof(eventSource)} must be null.", nameof(eventSource));
+			else if (!eventInfo.AddMethod.IsStatic && eventSource == null)
+				throw new ArgumentException($"{eventName} is an instance event, {nameof(eventSource)} must not be null.", nameof(eventSource));
 
 			if (handler.Target == null)
 			{
@@ -65,7 +80,7 @@ namespace ArgusLib
 			{
 				action = (sender, e) =>
 				{
-					var eventHandler = weakDelegate.Get();
+					var eventHandler = weakDelegate.Target;
 					if (eventHandler == null)
 					{
 						object eventSource;
@@ -80,7 +95,7 @@ namespace ArgusLib
 			{
 				action = (sender, e) =>
 				{
-					var eventHandler = weakDelegate.Get();
+					var eventHandler = weakDelegate.Target;
 					if (eventHandler == null)
 					{
 						object tmp;
@@ -119,6 +134,11 @@ namespace ArgusLib
 			EventInfo eventInfo = eventSourceType.GetRuntimeEvent(eventName);
 			if (eventInfo == null)
 				throw new ArgumentException($"The class {eventSourceType.FullName} has no public event named '{eventName}'.");
+
+			if (eventInfo.RemoveMethod.IsStatic && eventSource != null)
+				throw new ArgumentException($"{eventName} is a static event, {nameof(eventSource)} must be null.", nameof(eventSource));
+			else if (!eventInfo.RemoveMethod.IsStatic && eventSource == null)
+				throw new ArgumentException($"{eventName} is an instance event, {nameof(eventSource)} must not be null.", nameof(eventSource));
 
 			if (handler.Target == null)
 			{

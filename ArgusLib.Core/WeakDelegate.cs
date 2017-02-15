@@ -6,7 +6,7 @@ using System.Reflection;
 namespace ArgusLib
 {
 
-	public sealed class WeakDelegate<T> : IDisposable where T : class
+	public sealed class WeakDelegate<T> where T : class
 	{
 		static WeakDelegate()
 		{
@@ -15,7 +15,7 @@ namespace ArgusLib
 				throw new GenericTypeParameterNotSupportetException<T>();
 		}
 
-		readonly List<Tuple<MethodInfo, WeakReference<object>>> _invocationList;
+		readonly List<InvocationListItem> _invocationList = new List<InvocationListItem>(0);
 		readonly WeakReference<T> _delegate;
 
 		object Lock => _invocationList;
@@ -24,43 +24,44 @@ namespace ArgusLib
 		public WeakDelegate(T @delegate)
 		{
 			_delegate = new WeakReference<T>(@delegate);
-			_invocationList = new List<Tuple<MethodInfo, WeakReference<object>>>(0);
 			this.Add(@delegate);
 		}
 
-		public T Get()
+		public T Target
 		{
-			T retVal;
-
-			lock (Lock)
+			get
 			{
+				T retVal;
 				if (_delegate.TryGetTarget(out retVal))
 					return retVal;
 
-				Delegate del = null;
-				for (int i = 0; i < _invocationList.Count; i++)
+				lock (Lock)
 				{
-					object target;
-					if (_invocationList[i].Item2.TryGetTarget(out target))
+					Delegate del = null;
+					for (int i = 0; i < _invocationList.Count; i++)
 					{
-						if (object.ReferenceEquals(target, StaticTarget))
-							target = null;
+						object target;
+						if (_invocationList[i].Target.TryGetTarget(out target))
+						{
+							if (object.ReferenceEquals(target, StaticTarget))
+								target = null;
 
-						del = Delegate.Combine(del, _invocationList[i].Item1.CreateDelegate(typeof(T), target));
+							del = Delegate.Combine(del, _invocationList[i].MethodInfo.CreateDelegate(typeof(T), target));
+						}
+						else
+						{
+							_invocationList.RemoveAt(i);
+							i--;
+						}
 					}
-					else
-					{
-						_invocationList.RemoveAt(i);
-						i--;
-					}
+					_invocationList.Capacity = _invocationList.Count;
+
+					retVal = del as T;
 				}
-				_invocationList.Capacity = _invocationList.Count;
 
-				retVal = del as T;
 				_delegate.SetTarget(retVal);
+				return retVal;
 			}
-
-			return retVal;
 		}
 
 		public void Add(T subscriber)
@@ -70,13 +71,14 @@ namespace ArgusLib
 			if (invocationList == null || invocationList.Length == 0)
 				return;
 
-			lock(Lock)
+			_delegate.SetTarget(null);
+
+			lock (Lock)
 			{
-				_delegate.SetTarget(null);
 				_invocationList.Capacity += invocationList.Length;
 				for (int i = 0; i < invocationList.Length; i++)
 				{
-					var item = new Tuple<MethodInfo, WeakReference<object>>(invocationList[i].GetMethodInfo(), new WeakReference<object>(invocationList[i].Target ?? StaticTarget));
+					var item = new InvocationListItem(invocationList[i].GetMethodInfo(), invocationList[i].Target ?? StaticTarget);
 					_invocationList.Add(item);
 				}
 			}
@@ -87,16 +89,16 @@ namespace ArgusLib
 			Delegate d = subscriber as Delegate;
 			if (d == null)
 				return;
+
+			_delegate.SetTarget(null);
 			List<Delegate> invocationsToRemove = new List<Delegate>(d.GetInvocationList());
 
 			lock(Lock)
 			{
-				_delegate.SetTarget(null);
 				for (int i = 0; i < _invocationList.Count; i++)
 				{
-					MethodInfo method = _invocationList[i].Item1;
 					object target;
-					if (!_invocationList[i].Item2.TryGetTarget(out target))
+					if (!_invocationList[i].Target.TryGetTarget(out target))
 					{
 						_invocationList.RemoveAt(i);
 						i--;
@@ -108,7 +110,7 @@ namespace ArgusLib
 					for (int k = 0; k < invocationsToRemove.Count; k++)
 					{
 						Delegate rem = invocationsToRemove[k];
-						if (method.Equals(rem.GetMethodInfo()) && object.ReferenceEquals(target, rem.Target))
+						if (_invocationList[i].MethodInfo.Equals(rem.GetMethodInfo()) && object.ReferenceEquals(target, rem.Target))
 						{
 							_invocationList.RemoveAt(i);
 							i--;
@@ -121,12 +123,15 @@ namespace ArgusLib
 			}
 		}
 
-		public void Dispose()
+		struct InvocationListItem
 		{
-			lock (Lock)
+			public MethodInfo MethodInfo { get; }
+			public WeakReference<object> Target { get; }
+
+			public InvocationListItem(MethodInfo methodInfo, object target)
 			{
-				_invocationList.Clear();
-				_delegate.SetTarget(null);
+				MethodInfo = methodInfo ?? throw new ArgumentNullException(nameof(methodInfo));
+				Target = new WeakReference<object>(target);
 			}
 		}
 	}
