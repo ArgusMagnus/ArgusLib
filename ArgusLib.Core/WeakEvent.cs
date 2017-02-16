@@ -20,7 +20,7 @@ namespace ArgusLib
 			AddHandler(typeof(TEventSource), eventSource, eventName, handler);
 		}
 
-		public static void AddHandler<TSender, TEventArgs>(Type eventSourceType, string staticEventName, Action<TSender,TEventArgs> handler)
+		public static void AddHandler<TSender, TEventArgs>(Type eventSourceType, string staticEventName, Action<TSender, TEventArgs> handler)
 		{
 			AddHandler(eventSourceType, null, staticEventName, handler);
 		}
@@ -72,7 +72,7 @@ namespace ArgusLib
 		/// Gets the proxy event handler. This is encapsulated in a seperate method to make sure that the lambda expression
 		/// captures no unnecessary objects.
 		/// </summary>
-		static Delegate GetHandlerProxy<TSender, TEventArgs>(EventInfo eventInfo, WeakReference<object> eventSourceRef, WeakDelegate<Action<TSender,TEventArgs>> weakDelegate)
+		static Delegate GetHandlerProxy<TSender, TEventArgs>(EventInfo eventInfo, WeakReference<object> eventSourceRef, WeakDelegate<Action<TSender, TEventArgs>> weakDelegate)
 		{
 			Delegate proxy = null;
 			Action<TSender, TEventArgs> action = null;
@@ -80,30 +80,28 @@ namespace ArgusLib
 			{
 				action = (sender, e) =>
 				{
-					var eventHandler = weakDelegate.Target;
-					if (eventHandler == null)
+					if (weakDelegate.ActiveSubscriberCount == 0)
 					{
 						object eventSource;
 						if (_dict.TryRemove(eventInfo, out eventSource) && eventSourceRef.TryGetTarget(out eventSource))
 							eventInfo.RemoveEventHandler(eventSource, proxy);
 					}
 					else
-						eventHandler(sender, e);
+						weakDelegate.Proxy(sender, e);
 				};
 			}
 			else // Static event
 			{
 				action = (sender, e) =>
 				{
-					var eventHandler = weakDelegate.Target;
-					if (eventHandler == null)
+					if (weakDelegate.ActiveSubscriberCount == 0)
 					{
 						object tmp;
 						if (_dict.TryRemove(eventInfo, out tmp))
 							eventInfo.RemoveEventHandler(null, proxy);
 					}
 					else
-						eventHandler(sender, e);
+						weakDelegate.Proxy(sender, e);
 				};
 			}
 			proxy = action.Cast(eventInfo.EventHandlerType);
