@@ -80,7 +80,7 @@ namespace ArgusLib
 			{
 				action = (sender, e) =>
 				{
-					if (weakDelegate.ActiveSubscriberCount == 0)
+					if (weakDelegate.AliveSubscriberCount == 0)
 					{
 						object eventSource;
 						if (_dict.TryRemove(eventInfo, out eventSource) && eventSourceRef.TryGetTarget(out eventSource))
@@ -94,7 +94,7 @@ namespace ArgusLib
 			{
 				action = (sender, e) =>
 				{
-					if (weakDelegate.ActiveSubscriberCount == 0)
+					if (weakDelegate.AliveSubscriberCount == 0)
 					{
 						object tmp;
 						if (_dict.TryRemove(eventInfo, out tmp))
