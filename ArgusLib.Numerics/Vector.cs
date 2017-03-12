@@ -12,7 +12,6 @@ namespace ArgusLib.Numerics
 	}
 
 	public struct Vector<T, Dim> : IEquatable<Vector<T, Dim>>
-		where T : struct, IScalar<T>
 		where Dim : IDimensionProvider, new()
 	{
 		public static Vector<T, Dim> Zero { get { return new Vector<T, Dim>(); } }
@@ -27,7 +26,7 @@ namespace ArgusLib.Numerics
 			{
 				if (elements.Length != Dimension)
 					throw new ArgumentException("Wrong number of elements.");
-				if (elements.All((e) => e.IsZero))
+				if (elements.All((e) => Scalar<T>.AreEqual(e, Scalar<T>.Zero)))
 					_elements = null;
 				{
 					if (copy)
@@ -69,7 +68,7 @@ namespace ArgusLib.Numerics
 				return a;
 			T[] elements = new T[Dimension];
 			for (int i = 0; i < Dimension; i++)
-				elements[i] = a._elements[i].Add(b._elements[i]);
+				elements[i] = Scalar<T>.Add(a._elements[i], b._elements[i]);
 			return new Vector<T, Dim>(elements, false);
 		}
 
@@ -81,7 +80,7 @@ namespace ArgusLib.Numerics
 				return a;
 			T[] elements = new T[Dimension];
 			for (int i = 0; i < Dimension; i++)
-				elements[i] = a._elements[i].Subtract(b._elements[i]);
+				elements[i] = Scalar<T>.Subtract(a._elements[i], b._elements[i]);
 			return new Vector<T, Dim>(elements, false);
 		}
 
@@ -91,7 +90,7 @@ namespace ArgusLib.Numerics
 				return vector;
 			T[] elements = new T[Dimension];
 			for (int i = 0; i < Dimension; i++)
-				elements[i] = vector._elements[i].Negate();
+				elements[i] = Scalar<T>.Negate(vector._elements[i]);
 			return new Vector<T, Dim>(elements, false);
 		}
 
@@ -101,7 +100,7 @@ namespace ArgusLib.Numerics
 			if (b._elements == null || b._elements == null)
 				return result;
 			for (int i = 0; i < Dimension; i++)
-				result = result.Add(a._elements[i].Multiply(b._elements[i]));
+				result = Scalar<T>.Add(result, Scalar<T>.Multiply(a._elements[i], b._elements[i]));
 			return result;
 		}
 
@@ -111,7 +110,7 @@ namespace ArgusLib.Numerics
 				return vector;
 			T[] elements = new T[Dimension];
 			for (int i = 0; i < Dimension; i++)
-				elements[i] = scalar.Multiply(vector._elements[i]);
+				elements[i] = Scalar<T>.Multiply(scalar, vector._elements[i]);
 			return new Vector<T, Dim>(elements, false);
 		}
 
@@ -123,7 +122,7 @@ namespace ArgusLib.Numerics
 				return vector;
 			T[] elements = new T[Dimension];
 			for (int i = 0; i < Dimension; i++)
-				elements[i] = vector._elements[i].Divide(scalar);
+				elements[i] = Scalar<T>.Divide(vector._elements[i], scalar);
 			return new Vector<T, Dim>(elements, false);
 		}
 
@@ -140,7 +139,7 @@ namespace ArgusLib.Numerics
 				T[] elements = a._elements ?? b._elements;
 				for (int i = 0; i < Dimension; i++)
 				{
-					if (!elements[i].Equals(Scalar<T>.Zero))
+					if (!Scalar<T>.AreEqual(elements[i], Scalar<T>.Zero))
 						return false;
 				}
 			}
@@ -148,7 +147,7 @@ namespace ArgusLib.Numerics
 			{
 				for (int i = 0; i < Dimension; i++)
 				{
-					if (!a._elements[i].Equals(b._elements[i]))
+					if (!Scalar<T>.AreEqual(a._elements[i], b._elements[i]))
 						return false;
 				}
 			}
@@ -169,7 +168,6 @@ namespace ArgusLib.Numerics
 		}
 
 		public Vector<TOther, Dim> Cast<TOther>(Func<T, TOther> cast)
-			where TOther : struct, IScalar<TOther>
 		{
 			if (_elements == null)
 				return new Vector<TOther, Dim>();
@@ -201,7 +199,7 @@ namespace ArgusLib.Numerics
 					sb.Append(_elements[i].ToString());
 					sb.Append(del);
 				}
-				sb.Append(_elements[_elements.Length].ToString());
+				sb.Append(_elements[_elements.Length - 1].ToString());
 			}
 			sb.Append("]");
 			return sb.ToString();
@@ -227,15 +225,15 @@ namespace ArgusLib.Numerics
 		//	return builder.ToMatrix();
 		//}
 
-		public static Vector<T, Dim> SetNoiseToZero(T[] values, int startIndex = 0, int count = 0)
-		{
-			if (values == null)
-				return new Vector<T, Dim>();
-			T[] result = Vector.SetNoiseToZero<T>(values, startIndex, count);
-			return new Vector<T, Dim>(result, false);
-		}
+		//public static Vector<T, Dim> SetNoiseToZero(T[] values, int startIndex = 0, int count = 0)
+		//{
+		//	if (values == null)
+		//		return new Vector<T, Dim>();
+		//	T[] result = Vector.SetNoiseToZero<T>(values, startIndex, count);
+		//	return new Vector<T, Dim>(result, false);
+		//}
 
-		public Vector<T, Dim> SetNoiseToZero() => SetNoiseToZero(_elements);
+		//public Vector<T, Dim> SetNoiseToZero() => SetNoiseToZero(_elements);
 
 		public class Builder
 		{
@@ -263,7 +261,7 @@ namespace ArgusLib.Numerics
 			public void Reset() => _elements = new T[Dimension];
 
 			/// <summary>
-			/// Resets the <see cref="Vector{T, Dim}.Builder"/> ot its initial state,
+			/// Resets the <see cref="Vector{T, Dim}.Builder"/> to its initial state,
 			/// but only if this instance is not modifiable anymore (that is, <see cref="ToVector"/> has already
 			/// been called on it).
 			/// </summary>
@@ -305,18 +303,16 @@ namespace ArgusLib.Numerics
 	public static class Vector
 	{
 		public static T CrossProduct<T>(Vector<T, D2> a, Vector<T, D2> b)
-			where T : struct, IScalar<T>
 		{
-			return a[0].Multiply(b[1]).Subtract(a[1].Multiply(b[0]));
+			return Scalar<T>.Subtract(Scalar<T>.Multiply(a[0], b[1]), Scalar<T>.Multiply(a[1], b[0]));
 		}
 
 		public static Vector<T, D3> CrossProduct<T>(Vector<T, D3> a, Vector<T, D3> b)
-			where T : struct, IScalar<T>
 		{
 			Vector<T, D3>.Builder x = new Vector<T, D3>.Builder();
-			x[0] = a[1].Multiply(b[2]).Subtract(a[2].Multiply(b[1]));
-			x[1] = a[2].Multiply(b[0]).Subtract(a[0].Multiply(b[2]));
-			x[0] = a[0].Multiply(b[1]).Subtract(a[1].Multiply(b[0]));
+			x[0] = Scalar<T>.Subtract(Scalar<T>.Multiply(a[1], b[2]), Scalar<T>.Multiply(a[2], b[1]));
+			x[1] = Scalar<T>.Subtract(Scalar<T>.Multiply(a[2], b[0]), Scalar<T>.Multiply(a[0], b[2]));
+			x[2] = Scalar<T>.Subtract(Scalar<T>.Multiply(a[0], b[1]), Scalar<T>.Multiply(a[1], b[0]));
 			return x.ToVector();
 		}
 
@@ -333,45 +329,45 @@ namespace ArgusLib.Numerics
 		//	return result.ToMatrix();
 		//}
 
-		public static double GetLength<Dim>(this Vector<Int32Scalar, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
-		public static double GetLength<Dim>(this Vector<Int64Scalar, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
-		public static double GetLength<Dim>(this Vector<SingleScalar, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
-		public static double GetLength<Dim>(this Vector<DoubleScalar, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
+		public static double GetLength<Dim>(this Vector<int, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
+		public static double GetLength<Dim>(this Vector<long, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
+		public static double GetLength<Dim>(this Vector<float, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
+		public static double GetLength<Dim>(this Vector<double, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
 
-		public static Vector<DoubleScalar, D3> RotateX(this Vector<DoubleScalar, D3> v, Angle phi)
+		public static Vector<double, D3> RotateX(this Vector<double, D3> v, Angle phi)
 		{
 			double cos = phi.Cos();
 			double sin = phi.Sin();
-			var builder = new Vector<DoubleScalar, D3>.Builder();
+			var builder = new Vector<double, D3>.Builder();
 			builder[0] = v[0];
 			builder[1] = cos * v[1] - sin * v[2];
 			builder[2] = sin * v[1] + cos * v[2];
 			return builder.ToVector();
 		}
 
-		public static Vector<DoubleScalar, D3> RotateY(this Vector<DoubleScalar, D3> v, Angle phi)
+		public static Vector<double, D3> RotateY(this Vector<double, D3> v, Angle phi)
 		{
 			double cos = phi.Cos();
 			double sin = phi.Sin();
-			var builder = new Vector<DoubleScalar, D3>.Builder();
+			var builder = new Vector<double, D3>.Builder();
 			builder[0] = cos * v[0] + sin * v[2];
 			builder[1] = v[1];
 			builder[2] = -sin * v[0] + cos * v[2];
 			return builder.ToVector();
 		}
 
-		public static Vector<DoubleScalar, D3> RotateZ(this Vector<DoubleScalar, D3> v, Angle phi)
+		public static Vector<double, D3> RotateZ(this Vector<double, D3> v, Angle phi)
 		{
 			double cos = phi.Cos();
 			double sin = phi.Sin();
-			var builder = new Vector<DoubleScalar, D3>.Builder();
+			var builder = new Vector<double, D3>.Builder();
 			builder[0] = cos * v[0] - sin * v[1];
 			builder[1] = sin * v[0] + cos * v[1];
 			builder[2] = v[2];
 			return builder.ToVector();
 		}
 
-		public static Vector<DoubleScalar, Dim> ToUnit<Dim>(this Vector<DoubleScalar, Dim> v)
+		public static Vector<double, Dim> ToUnit<Dim>(this Vector<double, Dim> v)
 			where Dim : IDimensionProvider, new()
 		{
 			if (v.IsZero)
@@ -400,48 +396,48 @@ namespace ArgusLib.Numerics
 		/// (<see cref="IScalar{T}.Abs"/>): <c>output[i] = max.Add(input[i]).Equals(max) ? <see cref="Scalar{T}.Zero"/> : input[i]</c>.
 		/// Supports inplace modification (input == output).
 		/// </summary>
-		public static void SetNoiseToZero<T>(T[] input, T[] output, int indexInput = 0, int indexOutput = 0, int count = 0)
-			where T : struct, IScalar<T>, IComparable<T>
-		{
-			if (input == null)
-				throw new ArgumentNullException(nameof(input));
-			if (output == null)
-				throw new ArgumentNullException(nameof(output));
-			if (count < 1)
-				count = input.Length;
-			else if (input.Length - indexInput < count)
-				throw new ArgumentException($"{nameof(input.Length)} - {nameof(indexInput)} must be equal to or greater than {nameof(count)}");
-			if (output.Length-indexOutput < count)
-				throw new ArgumentException($"{nameof(output.Length)} - {nameof(indexOutput)} must be equal to or greater than {nameof(count)}");
+		//public static void SetNoiseToZero<T>(T[] input, T[] output, int indexInput = 0, int indexOutput = 0, int count = 0)
+		//	where T : struct, IScalar<T>, IComparable<T>
+		//{
+		//	if (input == null)
+		//		throw new ArgumentNullException(nameof(input));
+		//	if (output == null)
+		//		throw new ArgumentNullException(nameof(output));
+		//	if (count < 1)
+		//		count = input.Length;
+		//	else if (input.Length - indexInput < count)
+		//		throw new ArgumentException($"{nameof(input.Length)} - {nameof(indexInput)} must be equal to or greater than {nameof(count)}");
+		//	if (output.Length-indexOutput < count)
+		//		throw new ArgumentException($"{nameof(output.Length)} - {nameof(indexOutput)} must be equal to or greater than {nameof(count)}");
 
-			if (count < 2)
-				return;
+		//	if (count < 2)
+		//		return;
 
-			T max = input[indexInput].Abs;
-			for (int i = indexInput+1; i < indexInput+count; i++)
-			{
-				T val = input[i].Abs;
-				if (max.CompareTo(val) > 0)
-					max = val;
-			}
+		//	T max = input[indexInput].Abs;
+		//	for (int i = indexInput+1; i < indexInput+count; i++)
+		//	{
+		//		T val = input[i].Abs;
+		//		if (max.CompareTo(val) > 0)
+		//			max = val;
+		//	}
 
-			for (int i = indexInput; i < indexInput + count; i++)
-			{
-				if (max.Add(input[i]).Equals(max))
-					output[i] = Scalar<T>.Zero;
-				else if (input != output)
-					output[i] = input[i];
-			}
-		}
+		//	for (int i = indexInput; i < indexInput + count; i++)
+		//	{
+		//		if (max.Add(input[i]).Equals(max))
+		//			output[i] = Scalar<T>.Zero;
+		//		else if (input != output)
+		//			output[i] = input[i];
+		//	}
+		//}
 
-		public static T[] SetNoiseToZero<T>(T[] values, int startIndex = 0, int count = 0)
-			where T : struct, IScalar<T>
-		{
-			if (count < 1)
-				count = values.Length;
-			T[] output = new T[count];
-			SetNoiseToZero(values, output, startIndex, 0, count);
-			return output;
-		}
+		//public static T[] SetNoiseToZero<T>(T[] values, int startIndex = 0, int count = 0)
+		//	where T : struct, IScalar<T>
+		//{
+		//	if (count < 1)
+		//		count = values.Length;
+		//	T[] output = new T[count];
+		//	SetNoiseToZero(values, output, startIndex, 0, count);
+		//	return output;
+		//}
 	}
 }

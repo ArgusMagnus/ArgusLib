@@ -22,20 +22,20 @@ namespace ArgusLib.Numerics
 	/// - If the implementing type is a struct or has a parameterless constructor,
 	///   an instance of the type obtained with the parameterless constructor should be equal to <see cref="IScalar{T}.Zero"/>.
 	/// </remarks>
-	public interface IScalar<T> : IEquatable<T>, IParsable<T>, IFormattable, IComparable<T>
-	{
-		T Add(T value);
-		T Subtract(T value);
-		T Multiply(T value);
-		T Divide(T value);
-		T Negate();
-		T Abs { get; }
-		bool IsZero { get; }
-		bool IsOne { get; }
+	//public interface IScalar<T> : IEquatable<T>, IParsable<T>, IFormattable, IComparable<T>
+	//{
+	//	T Add(T value);
+	//	T Subtract(T value);
+	//	T Multiply(T value);
+	//	T Divide(T value);
+	//	T Negate();
+	//	T Abs { get; }
+	//	bool IsZero { get; }
+	//	bool IsOne { get; }
 
-		T Zero { get; }
-		T One { get; }
-	}
+	//	T Zero { get; }
+	//	T One { get; }
+	//}
 
 	//public static class Scalar<T> where T : struct, IScalar<T>
 	//{
