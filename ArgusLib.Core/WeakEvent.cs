@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Reflection;
 using System.Collections.Concurrent;
+using ArgusLib.Diagnostics.Tracing;
+using TraceSourceType = ArgusLib.WeakEvent;
 
 namespace ArgusLib
 {
@@ -33,23 +35,23 @@ namespace ArgusLib
 		static void AddHandler<TSender, TEventArgs>(Type eventSourceType, object eventSource, string eventName, Action<TSender, TEventArgs> handler)
 		{
 			if (eventSourceType == null)
-				throw new ArgumentNullException(nameof(eventSourceType));
+				throw Tracer.ThrowCritical(new ArgumentNullException(nameof(eventSourceType)), typeof(TraceSourceType));
 
 			EventInfo eventInfo = eventSourceType.GetRuntimeEvent(eventName);
 			if (eventInfo == null)
-				throw new ArgumentException($"The class {eventSourceType.FullName} has no public event named '{eventName}'.");
+				throw Tracer.ThrowCritical(new ArgumentException($"The class {eventSourceType.FullName} has no public event named '{eventName}'."), typeof(TraceSourceType));
 
 			if (eventInfo.AddMethod.IsStatic && eventSource != null)
-				throw new ArgumentException($"{eventName} is a static event, {nameof(eventSource)} must be null.", nameof(eventSource));
+				throw Tracer.ThrowError(new ArgumentException($"{eventName} is a static event, {nameof(eventSource)} must be null.", nameof(eventSource)), typeof(TraceSourceType));
 			else if (!eventInfo.AddMethod.IsStatic && eventSource == null)
-				throw new ArgumentException($"{eventName} is an instance event, {nameof(eventSource)} must not be null.", nameof(eventSource));
+				throw Tracer.ThrowError(new ArgumentException($"{eventName} is an instance event, {nameof(eventSource)} must not be null.", nameof(eventSource)), typeof(TraceSourceType));
 
 			if (handler.Target == null)
 			{
 				// For handlers invoking static methods the handler is added
 				var eventHandler = handler.Cast(eventInfo.EventHandlerType);
 				if (eventHandler == null)
-					throw new ArgumentException($"'{eventName}' does not accept the signature 'void ({typeof(TSender).FullName}, {typeof(TEventArgs).FullName}'.");
+					throw Tracer.ThrowError(new ArgumentException($"'{eventName}' does not accept the signature 'void ({typeof(TSender).FullName}, {typeof(TEventArgs).FullName}'."), typeof(TraceSourceType));
 				eventInfo.AddEventHandler(eventSource, eventHandler);
 				return;
 			}
@@ -109,7 +111,7 @@ namespace ArgusLib
 			{
 				object tmp;
 				_dict.TryRemove(eventInfo, out tmp);
-				throw new ArgumentException($"'{eventInfo.Name}' does not accept the signature 'void ({typeof(TSender).FullName}, {typeof(TEventArgs).FullName}'.");
+				throw Tracer.ThrowCritical(new ArgumentException($"'{eventInfo.Name}' does not accept the signature 'void ({typeof(TSender).FullName}, {typeof(TEventArgs).FullName}'."), typeof(TraceSourceType));
 			}
 			return proxy;
 		}
@@ -127,23 +129,23 @@ namespace ArgusLib
 		public static void RemoveHandler<TSender, TEventArgs>(Type eventSourceType, object eventSource, string eventName, Action<TSender, TEventArgs> handler)
 		{
 			if (eventSourceType == null)
-				throw new ArgumentNullException(nameof(eventSourceType));
+				throw Tracer.ThrowCritical(new ArgumentNullException(nameof(eventSourceType)), typeof(TraceSourceType));
 
 			EventInfo eventInfo = eventSourceType.GetRuntimeEvent(eventName);
 			if (eventInfo == null)
-				throw new ArgumentException($"The class {eventSourceType.FullName} has no public event named '{eventName}'.");
+				throw Tracer.ThrowCritical(new ArgumentException($"The class {eventSourceType.FullName} has no public event named '{eventName}'."), typeof(TraceSourceType));
 
 			if (eventInfo.RemoveMethod.IsStatic && eventSource != null)
-				throw new ArgumentException($"{eventName} is a static event, {nameof(eventSource)} must be null.", nameof(eventSource));
+				throw Tracer.ThrowError(new ArgumentException($"{eventName} is a static event, {nameof(eventSource)} must be null.", nameof(eventSource)), typeof(TraceSourceType));
 			else if (!eventInfo.RemoveMethod.IsStatic && eventSource == null)
-				throw new ArgumentException($"{eventName} is an instance event, {nameof(eventSource)} must not be null.", nameof(eventSource));
+				throw Tracer.ThrowError(new ArgumentException($"{eventName} is an instance event, {nameof(eventSource)} must not be null.", nameof(eventSource)), typeof(TraceSourceType));
 
 			if (handler.Target == null)
 			{
 				// For handlers invoking static methods the handler was added
 				var eventHandler = handler.Cast(eventInfo.EventHandlerType);
 				if (eventHandler == null)
-					throw new ArgumentException($"'{eventName}' does not accept the signature 'void ({typeof(TSender).FullName}, {typeof(TEventArgs).FullName}'.");
+					throw Tracer.ThrowError(new ArgumentException($"'{eventName}' does not accept the signature 'void ({typeof(TSender).FullName}, {typeof(TEventArgs).FullName}'."), typeof(TraceSourceType));
 				eventInfo.RemoveEventHandler(eventSource, eventHandler);
 				return;
 			}

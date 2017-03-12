@@ -10,30 +10,23 @@ using System.Threading.Tasks;
 
 namespace ArgusLib
 {
-	public delegate Task AsyncEventHandler<TSender, TEventArgs>(TSender sender, TEventArgs e) where TEventArgs : EventArgs;
-	public delegate Task AsyncEventHandler<TEventArgs>(object sender, TEventArgs e) where TEventArgs : EventArgs;
-	public delegate Task AsyncEventHandler(object sender, EventArgs e);
+	public delegate Task AsyncEventHandler<TSender, TEventArgs>(TSender sender, TEventArgs e);
 
 	public static partial class ExtensionMethods
 	{
 		public static async Task InvokeAsync<TSender, TEventArgs>(this AsyncEventHandler<TSender, TEventArgs> handler, TSender sender, TEventArgs e)
-			where TEventArgs : EventArgs
 		{
 			foreach (AsyncEventHandler<TSender, TEventArgs> subscriber in handler.GetInvocationList())
 				await subscriber.Invoke(sender, e).ConfigureAwait(false);
 		}
 
-		public static async Task InvokeAsync<TEventArgs>(this AsyncEventHandler<TEventArgs> handler, object sender, TEventArgs e)
-			where TEventArgs : EventArgs
+		public static async Task InvokeInParallelAsync<TSender, TEventArgs>(this AsyncEventHandler<TSender, TEventArgs> handler, TSender sender, TEventArgs e)
 		{
-			foreach (AsyncEventHandler<TEventArgs> subscriber in handler.GetInvocationList())
-				await subscriber.Invoke(sender, e).ConfigureAwait(false);
-		}
-
-		public static async Task InvokeAsync(this AsyncEventHandler handler, object sender, EventArgs e)
-		{
-			foreach (AsyncEventHandler subscriber in handler.GetInvocationList())
-				await subscriber.Invoke(sender, e).ConfigureAwait(false);
+			var invocationList = handler.GetInvocationList();
+			var tasks = new Task[invocationList.Length];
+			for (int i = 0; i < invocationList.Length; i++)
+				tasks[i] = (invocationList[i] as AsyncEventHandler<TSender, TEventArgs>).Invoke(sender, e);
+			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
 	}
 }

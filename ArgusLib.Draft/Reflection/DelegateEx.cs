@@ -63,6 +63,15 @@ namespace ArgusLib
 					RetVal[i] = list[i] as TDelegate;
 				return RetVal;
 			}
+
+			public static TDelegate Cast<TDelegate>(Delegate @delegate)
+				where TDelegate : class, T
+			{
+				Delegate retVal = null;
+				foreach (var d in @delegate.GetInvocationList())
+					retVal = Delegate.Combine(retVal, d.GetMethodInfo().CreateDelegate(typeof(TDelegate), d.Target));
+				return retVal as TDelegate;
+			}
 		}
 	}
 

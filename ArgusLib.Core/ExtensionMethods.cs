@@ -322,7 +322,7 @@ namespace ArgusLib
 		public static Delegate Cast(this Delegate @delegate, Type newType)
 		{
 			if (newType == null)
-				throw new ArgumentNullException(nameof(newType));
+				throw Tracer.ThrowCritical(new ArgumentNullException(nameof(newType)), typeof(ExtensionMethods));
 
 			var invocationList = @delegate.GetInvocationList();
 			Delegate[] newList = new Delegate[invocationList.Length];
@@ -332,7 +332,10 @@ namespace ArgusLib
 				for (int i = 0; i < invocationList.Length; i++)
 					newList[i] = invocationList[i].GetMethodInfo().CreateDelegate(newType, invocationList[i].Target);
 			}
-			catch (ArgumentException) { return null; }
+			catch (ArgumentException exception) when (Tracer.ExceptionInformational(exception, typeof(ExtensionMethods)))
+			{
+				return null;
+			}
 
 			return Delegate.Combine(newList);
 		}

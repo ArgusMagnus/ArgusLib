@@ -6,6 +6,7 @@ License: Microsoft Reciprocal License (MS-RL)
 */
 #endregion
 using System;
+using ArgusLib.Diagnostics.Tracing;
 
 namespace ArgusLib
 {
@@ -21,7 +22,7 @@ namespace ArgusLib
 
 		public LazyWeakReference(Func<T> valueFactory)
 		{
-			_create = valueFactory ?? throw new ArgumentNullException(nameof(valueFactory));
+			_create = valueFactory ?? throw Tracer.ThrowCritical<LazyWeakReference<T>>(new ArgumentNullException(nameof(valueFactory)));
 		}
 
 		public T Get()

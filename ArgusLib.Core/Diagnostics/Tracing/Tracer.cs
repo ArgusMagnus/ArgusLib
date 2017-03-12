@@ -34,7 +34,7 @@ namespace ArgusLib.Diagnostics.Tracing
 		/// By default, the tracer is disabled. To enable/disable the tracer
 		/// call one of the <see cref="Enable(EventLevel)"/>/<see cref="Disable"/> methods.
 		/// </summary>
-		public static event AsyncEventHandler<EventWrittenEventArgs> EventWrittenAsync
+		public static event AsyncEventHandler<object, EventWrittenEventArgs> EventWrittenAsync
 		{
 			add { EventListener.EventWrittenAsync += value; }
 			remove { EventListener.EventWrittenAsync -= value; }
@@ -43,6 +43,11 @@ namespace ArgusLib.Diagnostics.Tracing
 		public static void Enable(EventLevel eventLevel) => EventListener.EnableEvents(EventSource, eventLevel);
 		public static void Enable(EventLevel eventLevel, IDictionary<string, string> arguments) => EventListener.EnableEvents(EventSource, eventLevel, EventKeywords.None, arguments);
 		public static void Disable() => EventListener.DisableEvents(EventSource);
+
+		//static Tracer()
+		//{
+			//AppDomain.CurrentDomain.UnhandledException += ...
+		//}
 
 		#region Tracing Methods
 

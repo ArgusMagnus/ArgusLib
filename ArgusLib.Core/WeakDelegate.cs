@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Collections.Concurrent;
+using ArgusLib.Diagnostics.Tracing;
 
 namespace ArgusLib
 {
@@ -300,6 +301,15 @@ namespace ArgusLib
 
 		static InvocationListItem GetListItem(Delegate subscriber)
 		{
+			var data = StaticData.Get();
+			var methodInfo = subscriber.GetMethodInfo();
+			var method = data.OpenInstanceDelegates.GetOrAdd(methodInfo, CompileOpenInstanceDelegate);
+
+			return new InvocationListItem(method, methodInfo, methodInfo.IsStatic ? null : subscriber.Target);
+		}
+
+		static Delegate CompileOpenInstanceDelegate(MethodInfo methodInfo)
+		{
 			/* Creates a delegate of the following form:
 			
 			Delegate method = (object target, TArg1 arg1, TArg2 arg2, ...) =>
@@ -309,26 +319,18 @@ namespace ArgusLib
 			*/
 
 			var data = StaticData.Get();
-			var methodInfo = subscriber.GetMethodInfo();
-			Delegate method;
-			if (data.OpenInstanceDelegates.TryGetValue(methodInfo, out method))
-				return new InvocationListItem(method, methodInfo, methodInfo.IsStatic ? null : subscriber.Target);
-
-
 			ParameterExpression[] parameters = new ParameterExpression[data.ParameterTypes.Length + 1];
 			parameters[0] = Expression.Parameter(typeof(object), "target");
 			for (int i = 1; i < parameters.Length; i++)
 				parameters[i] = Expression.Parameter(data.ParameterTypes[i - 1], "arg" + i.ToStringInvariant());
 
-			method = Expression.Lambda(data.OpenInstanceDelegateType,
+			var method = Expression.Lambda(data.OpenInstanceDelegateType,
 				Expression.Call(methodInfo.IsStatic ? null : Expression.Convert(parameters[0], methodInfo.DeclaringType),
 					methodInfo, parameters.Skip(1)),
 				"OpenInstanceDelegate",
-				parameters).Compile();
+				parameters);
 
-			data.OpenInstanceDelegates.TryAdd(methodInfo, method);
-
-			return new InvocationListItem(method, methodInfo, methodInfo.IsStatic ? null : subscriber.Target);
+			return method.Compile();
 		}
 
 		#endregion
@@ -344,8 +346,8 @@ namespace ArgusLib
 
 			public InvocationListItem(Delegate method, MethodInfo id, object target)
 			{
-				Method = method ?? throw new ArgumentNullException(nameof(method));
-				Id = id ?? throw new ArgumentNullException(nameof(id));
+				Method = method ?? throw Tracer.ThrowCritical<WeakDelegate<T>>(new ArgumentNullException(nameof(method)));
+				Id = id ?? throw Tracer.ThrowCritical<WeakDelegate<T>>(new ArgumentNullException(nameof(id)));
 				Target = target == null ? null : new WeakReference<object>(target);
 			}
 
@@ -370,7 +372,7 @@ namespace ArgusLib
 			{
 				MethodInfo invoke = typeof(T).GetTypeInfo().GetDeclaredMethod("Invoke");
 				if (invoke == null)
-					throw new GenericTypeParameterNotSupportetException<T>(new Exception($"{typeof(T).FullName} does not declare a public method named Invoke"));
+					throw Tracer.ThrowCritical<WeakDelegate<T>>(new GenericTypeParameterNotSupportetException<T>(new Exception($"{typeof(T).FullName} does not declare a public method named Invoke")));
 
 				ReturnType = invoke.ReturnType;
 

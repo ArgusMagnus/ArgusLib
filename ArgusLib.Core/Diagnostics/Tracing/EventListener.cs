@@ -19,7 +19,7 @@ namespace ArgusLib.Diagnostics.Tracing
 			/// By default, no <see cref="EventSource"/> is enabled. To enable/disable <see cref="EventSource"/>s
 			/// call one of the <see cref="EventListener.EnableEvents"/>/<see cref="EventListener.DisableEvents"/> methods.
 			/// </summary>
-			public event AsyncEventHandler<EventWrittenEventArgs> EventWrittenAsync;
+			public event AsyncEventHandler<object, EventWrittenEventArgs> EventWrittenAsync;
 
 			/// <summary>
 			/// <see cref="EventWritten"/> is invoked, when an enabled <see cref="EventSource"/> writes an event.
@@ -41,7 +41,7 @@ namespace ArgusLib.Diagnostics.Tracing
 			{
 				EventWritten?.Invoke(null, eventData);
 				if (EventWrittenAsync != null)
-					await EventWrittenAsync.InvokeAsync(null, eventData).ConfigureAwait(false);
+					await EventWrittenAsync.InvokeInParallelAsync(null, eventData).ConfigureAwait(false);
 			}
 		}
 	}

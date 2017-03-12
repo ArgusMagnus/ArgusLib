@@ -6,6 +6,7 @@ License: Microsoft Reciprocal License (MS-RL)
 */
 #endregion
 using System;
+using ArgusLib.Diagnostics.Tracing;
 
 namespace ArgusLib
 {
@@ -95,7 +96,7 @@ namespace ArgusLib
 			if (format.StartsWith(Formats.Normalized))
 				return this._value.ToString(format.Substring(Formats.Normalized.Length));
 
-			throw new FormatException($"Invalid format: {format}");
+			throw Tracer.ThrowError<Angle>(new FormatException($"Invalid format: {format}"));
 		}
 
 		public static class Formats
