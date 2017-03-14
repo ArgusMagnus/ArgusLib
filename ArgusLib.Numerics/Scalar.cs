@@ -11,38 +11,6 @@ using ArgusLib.Diagnostics.Tracing;
 
 namespace ArgusLib.Numerics
 {
-	/// <summary>
-	/// 
-	/// </summary>
-	/// <remarks>
-	/// Note to implementors:
-	/// - The member of this interface should be implemented explicitly,
-	///   they are not intended to be called from user code directly but
-	///   by <see cref="Vector{T, Dim}"/>, <see cref="Matrix{T, ColDim, RowDim}"/>, etc.
-	/// - If the implementing type is a struct or has a parameterless constructor,
-	///   an instance of the type obtained with the parameterless constructor should be equal to <see cref="IScalar{T}.Zero"/>.
-	/// </remarks>
-	//public interface IScalar<T> : IEquatable<T>, IParsable<T>, IFormattable, IComparable<T>
-	//{
-	//	T Add(T value);
-	//	T Subtract(T value);
-	//	T Multiply(T value);
-	//	T Divide(T value);
-	//	T Negate();
-	//	T Abs { get; }
-	//	bool IsZero { get; }
-	//	bool IsOne { get; }
-
-	//	T Zero { get; }
-	//	T One { get; }
-	//}
-
-	//public static class Scalar<T> where T : struct, IScalar<T>
-	//{
-	//	public static readonly T Zero = new T().Zero;
-	//	public static readonly T One = Zero.One;
-	//}
-
 	public static class Scalar<T>
 	{
 		static Func<T, T, T> _add;
@@ -236,5 +204,15 @@ namespace ArgusLib.Numerics
 
 			return null;
 		}
+	}
+
+	public static class Scalar
+	{
+		public static T Add<T>(T summand1, T summand2) => Scalar<T>.Add(summand1, summand2);
+		public static T Subtract<T>(T minuend, T subtrahend) => Scalar<T>.Subtract(minuend, subtrahend);
+		public static T Multiply<T>(T factor1, T factor2) => Scalar<T>.Multiply(factor1, factor2);
+		public static T Divide<T>(T dividend, T divisor) => Scalar<T>.Divide(dividend, divisor);
+		public static T Negate<T>(T value) => Scalar<T>.Negate(value);
+		public static bool AreEqual<T>(T value1, T value2) => Scalar<T>.AreEqual(value1, value2);
 	}
 }

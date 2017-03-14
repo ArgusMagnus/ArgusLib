@@ -10,21 +10,120 @@ namespace ArgusLib.Numerics
 	public static class MathExpression
 	{
 		public static bool TryEvaluate<TParsable, TOpProvider>(string expression, out TParsable result)
-			where TParsable : IParsable<TParsable>, new()
 			where TOpProvider : IOperatorProvider<TParsable>, new()
 		{
 			return MathExpression<TParsable, TOpProvider>.TryEvaluate(expression, out result);
 		}
+
+		public static bool TryEvaluate<TParsableScalar>(string expression, out TParsableScalar result)
+		{
+			return MathExpression<TParsableScalar, ScalarOperatorProvider<TParsableScalar>>.TryEvaluate(expression, out result);
+		}
 	}
 
-	public static class MathExpression<TParsable, TOpProvider>
-		where TParsable : IParsable<TParsable>, new()
+	static class MathExpression<TParsable, TOpProvider>
 		where TOpProvider : IOperatorProvider<TParsable>, new()
 	{
 		struct IndexedOpInfo
 		{
 			public int Index { get; set; }
 			public OperatorDescription OpInfo { get; set; }
+		}
+
+		public static bool TryEvaluate(string expression, out TParsable result)
+		{
+			if (expression == null)
+				throw Tracer.ThrowError(new ArgumentNullException(nameof(expression)), typeof(MathExpression<TParsable, TOpProvider>));
+
+			result = default(TParsable);
+			Queue<TParsable> operandQueue;
+			Queue<OperatorDescription> operatorQueue;
+			if (!GetOperatorsAndOperands(expression, out operatorQueue, out operandQueue))
+				return false;
+			if (operatorQueue.Count == 0)
+			{
+				result = operandQueue.Dequeue();
+				return true;
+			}
+
+			var opProvider = new TOpProvider();
+			Stack<TParsable> operandStack = new Stack<TParsable>(operandQueue.Count);
+			operandStack.Push(operandQueue.Dequeue());
+			Stack<OperatorDescription> operatorStack = new Stack<OperatorDescription>(operatorQueue.Count);
+			operatorStack.Push(operatorQueue.Dequeue());
+			if (operatorStack.Peek().Type == OperatorTypes.BinaryOperator)
+				operandStack.Push(operandQueue.Dequeue());
+
+			while (operatorStack.Count > 0)
+			{
+				var op1 = operatorStack.Peek();
+				bool operatorQueueIsEmpty = operatorQueue.Count == 0;
+				var op2 = operatorQueueIsEmpty ? op1 : operatorQueue.Peek();
+
+				if (op1.Type == OperatorTypes.OpeningBracket && op2.Type == OperatorTypes.ClosingBracket)
+				{
+					operatorStack.Pop();
+					operatorQueue.Dequeue();
+					if (operatorStack.Count == 0 && operatorQueue.Count > 0)
+					{
+						op2 = operatorQueue.Dequeue();
+						operatorStack.Push(op2);
+						if (op2.Type == OperatorTypes.BinaryOperator)
+							operandStack.Push(operandQueue.Dequeue());
+					}
+				}
+				else if (op1.Type == OperatorTypes.OpeningBracket)
+				{
+					operatorStack.Push(operatorQueue.Dequeue());
+					if (op2.Type == OperatorTypes.BinaryOperator)
+						operandStack.Push(operandQueue.Dequeue());
+				}
+				else
+				{
+					bool op1IsUnary = op1.Type == OperatorTypes.UnaryOperatorPrefixed || op1.Type == OperatorTypes.UnaryOperatorSuffixed;
+					bool op2IsUnary = op2.Type == OperatorTypes.UnaryOperatorPrefixed || op2.Type == OperatorTypes.UnaryOperatorSuffixed;
+					bool op1IsBinary = op1.Type == OperatorTypes.BinaryOperator;
+					bool op2IsBinary = op2.Type == OperatorTypes.BinaryOperator;
+
+					if ((op2.Type == OperatorTypes.ClosingBracket) ||
+						(op1IsUnary && op2.Type == OperatorTypes.BinaryOperator) ||
+						(op1IsUnary && op2IsUnary && op1.Priority >= op2.Priority) ||
+						(op1IsBinary && op2IsBinary && op1.Priority >= op2.Priority))
+					{
+						// Operator 1 has priority
+						if (op1IsBinary)
+						{
+							var operand2 = operandStack.Pop();
+							var operand1 = operandStack.Pop();
+							var res = opProvider.ApplyBinaryOperator(op1, operand1, operand2);
+							operandStack.Push(res);
+						}
+						else if (op1IsUnary)
+						{
+							var operand = operandStack.Pop();
+							var res = opProvider.ApplyUnaryOperator(op1, operand);
+							operandStack.Push(res);
+						}
+						else
+							throw Tracer.ThrowLogAlways(new BugException($"Expression: '{expression}'"), typeof(MathExpression<TParsable, TOpProvider>));
+
+						operatorStack.Pop();
+					}
+
+					if (!operatorQueueIsEmpty && op2.Type != OperatorTypes.ClosingBracket)
+					{
+						operatorStack.Push(operatorQueue.Dequeue());
+						if (op2.Type == OperatorTypes.BinaryOperator)
+							operandStack.Push(operandQueue.Dequeue());
+					}
+				}
+			}
+
+			if (operandStack.Count != 1)
+				throw Tracer.ThrowLogAlways(new BugException($"Expression: '{expression}'"), typeof(MathExpression<TParsable, TOpProvider>));
+
+			result = operandStack.Pop();
+			return true;
 		}
 
 		static bool GetOperatorsAndOperands(string expression, out Queue<OperatorDescription> operatorQueue, out Queue<TParsable> operandQueue)
@@ -160,102 +259,6 @@ namespace ArgusLib.Numerics
 				Tracer.WriteVerbose($"Expression '{expression}': Wrong number of operands or unbalanced brackets.", typeof(MathExpression<TParsable, TOpProvider>));
 				return false;
 			}
-			return true;
-		}
-
-		public static bool TryEvaluate(string expression, out TParsable result)
-		{
-			if (expression == null)
-				throw Tracer.ThrowError(new ArgumentNullException(nameof(expression)), typeof(MathExpression));
-
-			result = default(TParsable);
-			Queue<TParsable> operandQueue;
-			Queue<OperatorDescription> operatorQueue;
-			if (!GetOperatorsAndOperands(expression, out operatorQueue, out operandQueue))
-				return false;
-			if (operatorQueue.Count == 0)
-			{
-				result = operandQueue.Dequeue();
-				return true;
-			}
-
-			var opProvider = new TOpProvider();
-			Stack<TParsable> operandStack = new Stack<TParsable>(operandQueue.Count);
-			operandStack.Push(operandQueue.Dequeue());
-			Stack<OperatorDescription> operatorStack = new Stack<OperatorDescription>(operatorQueue.Count);
-			operatorStack.Push(operatorQueue.Dequeue());
-			if (operatorStack.Peek().Type == OperatorTypes.BinaryOperator)
-				operandStack.Push(operandQueue.Dequeue());
-
-			while (operatorStack.Count > 0)
-			{
-				var op1 = operatorStack.Peek();
-				bool operatorQueueIsEmpty = operatorQueue.Count == 0;
-				var op2 = operatorQueueIsEmpty ? op1 : operatorQueue.Peek();
-
-				if (op1.Type == OperatorTypes.OpeningBracket && op2.Type == OperatorTypes.ClosingBracket)
-				{
-					operatorStack.Pop();
-					operatorQueue.Dequeue();
-					if (operatorStack.Count == 0 && operatorQueue.Count > 0)
-					{
-						op2 = operatorQueue.Dequeue();
-						operatorStack.Push(op2);
-						if (op2.Type == OperatorTypes.BinaryOperator)
-							operandStack.Push(operandQueue.Dequeue());
-					}
-				}
-				else if (op1.Type == OperatorTypes.OpeningBracket)
-				{
-					operatorStack.Push(operatorQueue.Dequeue());
-					if (op2.Type == OperatorTypes.BinaryOperator)
-						operandStack.Push(operandQueue.Dequeue());
-				}
-				else
-				{
-					bool op1IsUnary = op1.Type == OperatorTypes.UnaryOperatorPrefixed || op1.Type == OperatorTypes.UnaryOperatorSuffixed;
-					bool op2IsUnary = op2.Type == OperatorTypes.UnaryOperatorPrefixed || op2.Type == OperatorTypes.UnaryOperatorSuffixed;
-					bool op1IsBinary = op1.Type == OperatorTypes.BinaryOperator;
-					bool op2IsBinary = op2.Type == OperatorTypes.BinaryOperator;
-
-					if ((op2.Type == OperatorTypes.ClosingBracket) ||
-						(op1IsUnary && op2.Type == OperatorTypes.BinaryOperator) ||
-						(op1IsUnary && op2IsUnary && op1.Priority >= op2.Priority) ||
-						(op1IsBinary && op2IsBinary && op1.Priority >= op2.Priority))
-					{
-						// Operator 1 has priority
-						if (op1IsBinary)
-						{
-							var operand2 = operandStack.Pop();
-							var operand1 = operandStack.Pop();
-							var res = opProvider.ApplyBinaryOperator(op1, operand1, operand2);
-							operandStack.Push(res);
-						}
-						else if (op1IsUnary)
-						{
-							var operand = operandStack.Pop();
-							var res = opProvider.ApplyUnaryOperator(op1, operand);
-							operandStack.Push(res);
-						}
-						else
-							throw Tracer.ThrowLogAlways(new BugException($"Expression: '{expression}'"), typeof(MathExpression<TParsable, TOpProvider>));
-
-						operatorStack.Pop();
-					}
-
-					if (!operatorQueueIsEmpty && op2.Type != OperatorTypes.ClosingBracket)
-					{
-						operatorStack.Push(operatorQueue.Dequeue());
-						if (op2.Type == OperatorTypes.BinaryOperator)
-							operandStack.Push(operandQueue.Dequeue());
-					}
-				}
-			}
-
-			if (operandStack.Count != 1)
-				throw Tracer.ThrowLogAlways(new BugException($"Expression: '{expression}'"), typeof(MathExpression<TParsable, TOpProvider>));
-
-			result = operandStack.Pop();
 			return true;
 		}
 	}

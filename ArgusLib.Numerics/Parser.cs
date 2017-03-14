@@ -8,6 +8,9 @@ License: Microsoft Reciprocal License (MS-RL)
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
+using System.Linq;
+using ArgusLib.Diagnostics.Tracing;
 
 namespace ArgusLib.Numerics
 {
@@ -22,16 +25,39 @@ namespace ArgusLib.Numerics
 	}
 
 	public static class Parser<T>
-		where T : IParsable<T>, new()
 	{
-		static readonly TryParseHandler<T> _parser = new T().GetTryParseHandler();
+		static TryParseHandler<T> _parser;
 
-		public static bool TryParse(string text, out T value, string format = null, IFormatProvider formatProvider = null) => _parser(text, out value, format, formatProvider);
+		public static bool TryParse(string text, out T value, string format = null, IFormatProvider formatProvider = null)
+		{
+			if (_parser == null)
+				_parser = Initialize();
+			return _parser(text, out value, format, formatProvider);
+
+			TryParseHandler<T> Initialize()
+			{
+				var implementedInterfaces = typeof(T).GetTypeInfo().ImplementedInterfaces;
+
+				if (implementedInterfaces.Contains(typeof(IParsable<T>)))
+					return (Activator.CreateInstance<T>() as IParsable<T>).GetTryParseHandler();
+				if (implementedInterfaces.Contains(typeof(IConvertible)))
+					return ConvertibleTryParseHandler;
+
+				throw Tracer.ThrowCritical(new GenericTypeParameterNotSupportetException<T>(), typeof(Parser<T>));
+
+				bool ConvertibleTryParseHandler(string str, out T v, string fmt, IFormatProvider fmtProvider)
+				{
+					v = default(T);
+					try { v = (T)Convert.ChangeType(str, typeof(T), fmtProvider); }
+					catch (Exception exception) when (Tracer.ExceptionInformational(exception, typeof(Parser))) { return false; }
+					return true;
+				}
+			}
+		}
 
 		public static T TryParse(string text, T fallbackValue = default(T), string format = null, IFormatProvider formatProvider = null)
 		{
-			T val;
-			if (_parser(text, out val, format, formatProvider))
+			if (TryParse(text, out var val, format, formatProvider))
 				return val;
 			return fallbackValue;
 		}
@@ -39,8 +65,8 @@ namespace ArgusLib.Numerics
 
 	public static class Parser
 	{
-		public static bool TryParse<T>(string text, out T value, string format = null, IFormatProvider formatProvider = null) where T : IParsable<T>, new() => Parser<T>.TryParse(text, out value, format, formatProvider);
+		public static bool TryParse<T>(string text, out T value, string format = null, IFormatProvider formatProvider = null) => Parser<T>.TryParse(text, out value, format, formatProvider);
 
-		public static T TryParse<T>(string text, T fallbackValue = default(T), string format = null, IFormatProvider formatProvider = null) where T : IParsable<T>, new() => Parser<T>.TryParse(text, fallbackValue, format, formatProvider);
+		public static T TryParse<T>(string text, T fallbackValue = default(T), string format = null, IFormatProvider formatProvider = null) => Parser<T>.TryParse(text, fallbackValue, format, formatProvider);
 	}
 }
