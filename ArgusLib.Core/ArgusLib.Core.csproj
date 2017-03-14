@@ -3,7 +3,7 @@
     <TargetFramework>netstandard1.4</TargetFramework>
     <RootNamespace>ArgusLib</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <PreBuildEvent>echo $(SolutionDir) &gt; $(ProjectDir)Resources\SolutionDirectoryFile.txt</PreBuildEvent>
+    <PreBuildEvent></PreBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <None Update="BitOperations\BitConverterEx.tt">
@@ -38,20 +38,10 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Integer.tt</DependentUpon>
     </Compile>
-    <Compile Update="Resources\DevelopmentEnvironment.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>DevelopmentEnvironment.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="Resources\DevelopmentEnvironment.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>DevelopmentEnvironment.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+    <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Constants.g.cs">
@@ -61,9 +51,31 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ILCompile" Version="1.0.5" />
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ArgusLib.Exceptions\ArgusLib.Exceptions.csproj" />
   </ItemGroup>
+	<Target Name="GenerateBuildEnvironment" BeforeTargets="CoreCompile">
+		<!--<ItemGroup>
+			<AssemblyAttributes Include="AssemblyMetadata">
+				<_Parameter1>SolutionDir</_Parameter1>
+				<_Parameter2>$(SolutionDir)</_Parameter2>
+			</AssemblyAttributes>
+		</ItemGroup>
+		<WriteCodeFragment AssemblyAttributes="@(AssemblyAttributes)" Language="C#" OutputDirectory="$(IntermediateOutputPath)">
+			<Output TaskParameter="OutputFile" ItemName="Compile" />
+		</WriteCodeFragment>-->
+		<ItemGroup>
+			<BuildEnvironmentLines Include="namespace $(RootNamespace) {" />
+			<BuildEnvironmentLines Include="static class BuildEnvironment {" />
+			<BuildEnvironmentLines Include="public static string SolutionDirectory =&gt; @&quot;$(SolutionDir)&quot;%3B" />
+			<BuildEnvironmentLines Include="} }" />
+		</ItemGroup>
+		<WriteLinesToFile File="$(IntermediateOutputPath)BuildEnvironment.cs" Lines="@(BuildEnvironmentLines)" Overwrite="true" />
+		<ItemGroup>
+			<Compile Include="$(IntermediateOutputPath)BuildEnvironment.cs" />
+		</ItemGroup>
+	</Target>
 </Project>

@@ -12,7 +12,6 @@ namespace ArgusLib
 {
 	using System;
 	using ArgusLib.Diagnostics.Tracing;
-	using ArgusLib.Resources;
 
 	public static partial class BitConverterEx
 	{

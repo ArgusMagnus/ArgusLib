@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ArgusLib.Diagnostics.Tracing;
-using ArgusLib.Resources;
 using System.Security.Cryptography;
 
 namespace ArgusLib.Random

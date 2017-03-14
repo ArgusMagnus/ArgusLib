@@ -60,10 +60,10 @@ namespace ArgusLib.Diagnostics.Tracing
 				if (!this.IsEnabled())
 					return;
 				
-				message = message?.Replace(Utils.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
+				message = message?.Replace(BuildEnvironment.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
 				callerTypeName = callerTypeName ?? string.Empty;
 				callerMemberName = callerMemberName ?? string.Empty;
-				callerFilePath = callerFilePath?.Replace(Utils.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
+				callerFilePath = callerFilePath?.Replace(BuildEnvironment.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
 
 				fixed (char* chMessage = message)
 				fixed (char* chCallerType = callerTypeName)
@@ -91,10 +91,10 @@ namespace ArgusLib.Diagnostics.Tracing
 				if (!this.IsEnabled())
 					return;
 
-				exception = exception?.ToString().Replace(Utils.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
+				exception = exception?.ToString().Replace(BuildEnvironment.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
 				callerTypeName = callerTypeName ?? string.Empty;
 				callerMemberName = callerMemberName ?? string.Empty;
-				callerFilePath = callerFilePath?.Replace(Utils.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
+				callerFilePath = callerFilePath?.Replace(BuildEnvironment.SolutionDirectory, string.Empty, StringComparison.OrdinalIgnoreCase) ?? string.Empty;
 
 				fixed (char* chException = exception)
 				fixed (char* chCallerType = callerTypeName)
