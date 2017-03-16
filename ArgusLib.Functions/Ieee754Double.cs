@@ -58,9 +58,9 @@ namespace ArgusLib
 				set
 				{
 					if (value)
-						Integer<ulong>.SetFlag(Bits, SignMask);
+						BitSet.SetFlag(Bits, SignMask);
 					else
-						Integer<ulong>.RemoveFlag(Bits, SignMask);
+						BitSet.ClearFlag(Bits, SignMask);
 				}
 			}
 

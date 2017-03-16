@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ArgusLib.Internal;
 
 namespace ArgusLib.Threading
 {
@@ -96,7 +95,7 @@ namespace ArgusLib.Threading
 	/// <seealso cref="InterlockedSingle"/>
 	/// <seealso cref="InterlockedDouble"/>
 	/// <seealso cref="InterlockedBoolean"/>
-	public abstract class InterlockedEnum<TEnum>
+	public abstract class InterlockedEnum<TEnum> where TEnum : struct, IConvertible
 	{
 		public abstract TEnum Value { get; set; }
 
@@ -114,84 +113,62 @@ namespace ArgusLib.Threading
 		public abstract TEnum CompareExchange(TEnum value, TEnum comparand);
 
 		public static implicit operator TEnum(InterlockedEnum<TEnum> value) { return value.Value; }
-	}
 
-	namespace Internal
-	{
-		public abstract class InterlockedEnumCore<T>
+		internal static InterlockedEnum<TEnum> Create(TEnum value)
 		{
-			static InterlockedEnumCore()
-			{
-				if (typeof(T) != typeof(Enum))
-					throw new GenericTypeParameterNotSupportetException<T>(new InvalidOperationException($"{nameof(T)} must be {typeof(Enum).FullName}."));
-			}
-
-			internal InterlockedEnumCore()
-			{ }
-
-			public static InterlockedEnum<TEnum> Create<TEnum>(TEnum value = default(TEnum))
-				where TEnum : struct, T
-			{
-				Type type = Enum.GetUnderlyingType(typeof(TEnum));
-				if (type == typeof(long) || type == typeof(ulong))
-					return new InterlockedEnum64<TEnum>(value);
-				else
-					return new InterlockedEnum32<TEnum>(value);
-			}
+			Type type = Enum.GetUnderlyingType(typeof(TEnum));
+			if (type == typeof(long) || type == typeof(ulong))
+				return new InterlockedEnum64(value);
+			else
+				return new InterlockedEnum32(value);
 		}
 
-		sealed class InterlockedEnum32<T> : InterlockedEnum<T>
+		sealed class InterlockedEnum32 : InterlockedEnum<TEnum>
 		{
 			int _value;
 
-			public override T Value
+			public override TEnum Value
 			{
-				get { return Integer<T>.FromInt32(Interlocked.CompareExchange(ref _value, 0, 0)); }
-				set { Interlocked.Exchange(ref _value, Integer<T>.ToInt32(value)); }
+				get { return BitSet.FromInt32<TEnum>(Interlocked.CompareExchange(ref _value, 0, 0)); }
+				set { Interlocked.Exchange(ref _value, BitSet.ToInt32(value)); }
 			}
 
-			internal InterlockedEnum32(T value)
+			internal InterlockedEnum32(TEnum value)
 				: base(value) { }
 
-			public override T Exchange(T value)
+			public override TEnum Exchange(TEnum value)
 			{
-				return Integer<T>.FromInt32(Interlocked.Exchange(ref _value, Integer<T>.ToInt32(value)));
+				return BitSet.FromInt32<TEnum>(Interlocked.Exchange(ref _value, BitSet.ToInt32(value)));
 			}
 
-			public override T CompareExchange(T value, T comparand)
+			public override TEnum CompareExchange(TEnum value, TEnum comparand)
 			{
-				return Integer<T>.FromInt32(Interlocked.CompareExchange(ref _value, Integer<T>.ToInt32(value), Integer<T>.ToInt32(comparand)));
+				return BitSet.FromInt32<TEnum>(Interlocked.CompareExchange(ref _value, BitSet.ToInt32(value), BitSet.ToInt32(comparand)));
 			}
 		}
 
-		sealed class InterlockedEnum64<T> : InterlockedEnum<T>
+		sealed class InterlockedEnum64 : InterlockedEnum<TEnum>
 		{
 			long _value;
 
-			public override T Value
+			public override TEnum Value
 			{
-				get { return Integer<T>.FromInt64(Interlocked.CompareExchange(ref _value, 0, 0)); }
-				set { Interlocked.Exchange(ref _value, Integer<T>.ToInt64(value)); }
+				get { return BitSet.FromInt64<TEnum>(Interlocked.CompareExchange(ref _value, 0, 0)); }
+				set { Interlocked.Exchange(ref _value, BitSet.ToInt64(value)); }
 			}
 
-			internal InterlockedEnum64(T value)
+			internal InterlockedEnum64(TEnum value)
 				: base(value) { }
 
-			public override T Exchange(T value)
+			public override TEnum Exchange(TEnum value)
 			{
-				return Integer<T>.FromInt64(Interlocked.Exchange(ref _value, Integer<T>.ToInt64(value)));
+				return BitSet.FromInt64<TEnum>(Interlocked.Exchange(ref _value, BitSet.ToInt64(value)));
 			}
 
-			public override T CompareExchange(T value, T comparand)
+			public override TEnum CompareExchange(TEnum value, TEnum comparand)
 			{
-				return Integer<T>.FromInt64(Interlocked.CompareExchange(ref _value, Integer<T>.ToInt64(value), Integer<T>.ToInt64(comparand)));
+				return BitSet.FromInt64<TEnum>(Interlocked.CompareExchange(ref _value, BitSet.ToInt64(value), BitSet.ToInt64(comparand)));
 			}
 		}
-	}
-
-	public sealed class InterlockedEnum : Internal.InterlockedEnumCore<Enum>
-	{
-		InterlockedEnum()
-		{ }
 	}
 }

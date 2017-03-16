@@ -3,7 +3,6 @@
     <TargetFramework>netstandard1.4</TargetFramework>
     <RootNamespace>ArgusLib</RootNamespace>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <PreBuildEvent></PreBuildEvent>
   </PropertyGroup>
   <ItemGroup>
     <None Update="BitOperations\BitConverterEx.tt">
@@ -58,15 +57,6 @@
     <ProjectReference Include="..\ArgusLib.Exceptions\ArgusLib.Exceptions.csproj" />
   </ItemGroup>
 	<Target Name="GenerateBuildEnvironment" BeforeTargets="CoreCompile">
-		<!--<ItemGroup>
-			<AssemblyAttributes Include="AssemblyMetadata">
-				<_Parameter1>SolutionDir</_Parameter1>
-				<_Parameter2>$(SolutionDir)</_Parameter2>
-			</AssemblyAttributes>
-		</ItemGroup>
-		<WriteCodeFragment AssemblyAttributes="@(AssemblyAttributes)" Language="C#" OutputDirectory="$(IntermediateOutputPath)">
-			<Output TaskParameter="OutputFile" ItemName="Compile" />
-		</WriteCodeFragment>-->
 		<ItemGroup>
 			<BuildEnvironmentLines Include="namespace $(RootNamespace) {" />
 			<BuildEnvironmentLines Include="static class BuildEnvironment {" />

@@ -8,36 +8,34 @@ using ArgusLib;
 using ArgusLib.Numerics;
 using ArgusLib.Diagnostics.Tracing;
 using System.Reflection;
+using System.Numerics;
 
 namespace SamplesConsole
 {
-	public struct Test
+	enum MyEnum
 	{
-		public int Value { get; }
-
-		public Test(int value)
-		{
-			Value = value;
-		}
-
-		public static Test operator +(Test a, Test b) => new Test(a.Value + b.Value);
-		public static Test operator -(Test a, Test b) => new Test(a.Value - b.Value);
-
-		public override string ToString() => Value.ToString();
-
-		public static explicit operator Test(int i)=> new Test(i);
+		Bla = 2
 	}
 
 	class Program
 	{
-		public static event Action<object,string> Event;
-
 		static void Main(string[] args)
 		{
-			Test a = Scalar<Test>.One;
-			Test b = Scalar<Test>.Zero;
-			Console.WriteLine(Scalar<Test>.Add(a, b));
-			Console.ReadKey();
+			MyEnum v = BitSet.FromInt32<MyEnum>(2);
+			Console.WriteLine(v.ContainsFlag(MyEnum.Bla));
+			while (true)
+			{
+				string expression = Console.ReadLine();
+				if (MathExpression.TryEvaluate(expression, out decimal result))
+					Console.WriteLine($"= {result}");
+				else
+					Console.WriteLine("Expression could not be evaluated");
+			}
+			
+			//var a = Scalar<Complex>.Zero;
+			//var b = Scalar<Complex>.One;
+			//Console.WriteLine(Scalar.Add(a, b));
+			//Console.ReadKey();
 		}
 	}
 }

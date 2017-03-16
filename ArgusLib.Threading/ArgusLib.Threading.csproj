@@ -3,6 +3,9 @@
     <TargetFramework>netstandard1.4</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="ILCompile" Version="1.0.5" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\ArgusLib.Core\ArgusLib.Core.csproj" />
     <ProjectReference Include="..\ArgusLib.Exceptions\ArgusLib.Exceptions.csproj" />
   </ItemGroup>

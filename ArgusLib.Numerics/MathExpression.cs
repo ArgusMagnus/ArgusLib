@@ -170,7 +170,7 @@ namespace ArgusLib.Numerics
 				int idxNextOperator = i < ops.Count - 1 ? ops[i + 1].Index : expression.Length;
 				string strOperand2 = expression.Substring(idxOperand2, idxNextOperator - idxOperand2);
 
-				if (EnumEx.HasFlag(opInfo.Type, OperatorTypes.OpeningBracket))
+				if (BitSet.HasFlag(opInfo.Type, OperatorTypes.OpeningBracket))
 				{
 					if (ops[i].Index > 0 && !string.IsNullOrEmpty(strOperand1))
 					{
@@ -180,7 +180,7 @@ namespace ArgusLib.Numerics
 					opInfo = new OperatorDescription(opInfo.Symbol, opInfo.Priority, OperatorTypes.OpeningBracket);
 					bracketBalance++;
 				}
-				else if (EnumEx.HasFlag(opInfo.Type, OperatorTypes.ClosingBracket))
+				else if (BitSet.HasFlag(opInfo.Type, OperatorTypes.ClosingBracket))
 				{
 					if (idxOperand2 < expression.Length - 1 && !string.IsNullOrEmpty(strOperand2))
 					{
@@ -197,8 +197,8 @@ namespace ArgusLib.Numerics
 				}
 				else
 				{
-					bool op1IsValid = !string.IsNullOrEmpty(strOperand1) || (i > 0 && EnumEx.HasFlag(ops[i - 1].OpInfo.Type, OperatorTypes.ClosingBracket));
-					bool op2IsValid = !string.IsNullOrEmpty(strOperand2) || (i < ops.Count - 1 && EnumEx.HasFlag(ops[i + 1].OpInfo.Type, OperatorTypes.OpeningBracket));
+					bool op1IsValid = !string.IsNullOrEmpty(strOperand1) || (i > 0 && BitSet.HasFlag(ops[i - 1].OpInfo.Type, OperatorTypes.ClosingBracket));
+					bool op2IsValid = !string.IsNullOrEmpty(strOperand2) || (i < ops.Count - 1 && BitSet.HasFlag(ops[i + 1].OpInfo.Type, OperatorTypes.OpeningBracket));
 
 					if (!op1IsValid && !op2IsValid)
 					{
@@ -208,7 +208,7 @@ namespace ArgusLib.Numerics
 
 					if (!op1IsValid)
 					{
-						if (EnumEx.HasFlag(opInfo.Type, OperatorTypes.UnaryOperatorPrefixed))
+						if (BitSet.HasFlag(opInfo.Type, OperatorTypes.UnaryOperatorPrefixed))
 							opInfo = new OperatorDescription(opInfo.Symbol, opInfo.Priority, OperatorTypes.UnaryOperatorPrefixed);
 						else
 						{
@@ -218,7 +218,7 @@ namespace ArgusLib.Numerics
 					}
 					else if (!op2IsValid)
 					{
-						if (EnumEx.HasFlag(opInfo.Type, OperatorTypes.UnaryOperatorSuffixed))
+						if (BitSet.HasFlag(opInfo.Type, OperatorTypes.UnaryOperatorSuffixed))
 							opInfo = new OperatorDescription(opInfo.Symbol, opInfo.Priority, OperatorTypes.UnaryOperatorSuffixed);
 						else
 						{
@@ -228,7 +228,7 @@ namespace ArgusLib.Numerics
 					}
 					else
 					{
-						if (EnumEx.HasFlag(opInfo.Type, OperatorTypes.BinaryOperator))
+						if (BitSet.HasFlag(opInfo.Type, OperatorTypes.BinaryOperator))
 						{
 							opInfo = new OperatorDescription(opInfo.Symbol, opInfo.Priority, OperatorTypes.BinaryOperator);
 							noExpectedOperands++;
