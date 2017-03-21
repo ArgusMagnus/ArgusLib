@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -51,7 +52,7 @@ namespace ArgusLib.Numerics
 	/// <summary>
 	/// Basic matrix implementation. Not optimized for large or special (sparse, diagonal, triagonal, etc.) matrices.
 	/// </summary>
-	public struct Matrix<T, ColDim, RowDim> : IEquatable<Matrix<T, ColDim, RowDim>>
+	public struct Matrix<T, ColDim, RowDim> : IEquatable<Matrix<T, ColDim, RowDim>>, IEnumerable<T>
 		where RowDim : IDimensionProvider, new()
 		where ColDim : IDimensionProvider, new()
 	{
@@ -263,6 +264,18 @@ namespace ArgusLib.Numerics
 		public bool Equals(Matrix<T, ColDim, RowDim> other) => this == other;
 		public override bool Equals(object obj) => obj is Matrix<T, ColDim, RowDim> ? (Matrix<T, ColDim, RowDim>)obj == this : false;
 		public override int GetHashCode() => _elements?.GetHashCode() ?? 0;
+
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			foreach (var element in _elements)
+				yield return element;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			foreach (var element in _elements)
+				yield return element;
+		}
 
 		public class Builder
 		{

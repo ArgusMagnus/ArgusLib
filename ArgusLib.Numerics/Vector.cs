@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +12,7 @@ namespace ArgusLib.Numerics
 		int Dimension { get; }
 	}
 
-	public struct Vector<T, Dim> : IEquatable<Vector<T, Dim>>
+	public struct Vector<T, Dim> : IEquatable<Vector<T, Dim>>, IEnumerable<T>
 		where Dim : IDimensionProvider, new()
 	{
 		public static Vector<T, Dim> Zero { get { return new Vector<T, Dim>(); } }
@@ -128,10 +129,6 @@ namespace ArgusLib.Numerics
 
 		public static bool operator ==(Vector<T, Dim> a, Vector<T, Dim> b)
 		{
-			//if (object.ReferenceEquals(a, b))
-			//	return true;
-			//if (object.ReferenceEquals(a, null) || object.ReferenceEquals(b, null))
-			//	return false;
 			if (object.ReferenceEquals(a._elements, b._elements))
 				return true;
 			if (a._elements == null || b._elements == null)
@@ -205,25 +202,25 @@ namespace ArgusLib.Numerics
 			return sb.ToString();
 		}
 
-		//public Matrix<T, Dim, D1> ToOneColumnMatrix()
-		//{
-		//	if (_elements == null)
-		//		return new Matrix<T, Dim, D1>();
-		//	var builder = new Matrix<T, Dim, D1>.Builder();
-		//	for (int i = 0; i < Dimension; i++)
-		//		builder[i, 0] = _elements[i];
-		//	return builder.ToMatrix();
-		//}
+		public Matrix<T, Dim, D1> ToOneColumnMatrix()
+		{
+			if (_elements == null)
+				return new Matrix<T, Dim, D1>();
+			var builder = new Matrix<T, Dim, D1>.Builder();
+			for (int i = 0; i < Dimension; i++)
+				builder[i, 0] = _elements[i];
+			return builder.ToMatrix();
+		}
 
-		//public Matrix<T, D1, Dim> ToOneRowMatrix()
-		//{
-		//	if (_elements == null)
-		//		return new Matrix<T, D1, Dim>();
-		//	var builder = new Matrix<T, D1, Dim>.Builder();
-		//	for (int i = 0; i < Dimension; i++)
-		//		builder[0, i] = _elements[i];
-		//	return builder.ToMatrix();
-		//}
+		public Matrix<T, D1, Dim> ToOneRowMatrix()
+		{
+			if (_elements == null)
+				return new Matrix<T, D1, Dim>();
+			var builder = new Matrix<T, D1, Dim>.Builder();
+			for (int i = 0; i < Dimension; i++)
+				builder[0, i] = _elements[i];
+			return builder.ToMatrix();
+		}
 
 		//public static Vector<T, Dim> SetNoiseToZero(T[] values, int startIndex = 0, int count = 0)
 		//{
@@ -234,6 +231,18 @@ namespace ArgusLib.Numerics
 		//}
 
 		//public Vector<T, Dim> SetNoiseToZero() => SetNoiseToZero(_elements);
+
+		IEnumerator<T> IEnumerable<T>.GetEnumerator()
+		{
+			foreach (var element in _elements)
+				yield return element;
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			foreach (var element in _elements)
+				yield return element;
+		}
 
 		public class Builder
 		{
@@ -316,18 +325,17 @@ namespace ArgusLib.Numerics
 			return x.ToVector();
 		}
 
-		//public static Matrix<T, D3, D3> ToSkewSymmetricMatrix<T>(this Vector<T, D3> v)
-		//	where T : struct, IScalar<T>
-		//{
-		//	var result = new Matrix<T, D3, D3>.Builder();
-		//	result[0, 1] = v[2].Negate();
-		//	result[0, 2] = v[1];
-		//	result[1, 0] = v[2];
-		//	result[1, 2] = v[0].Negate();
-		//	result[2, 0] = v[1].Negate();
-		//	result[2, 1] = v[0];
-		//	return result.ToMatrix();
-		//}
+		public static Matrix<T, D3, D3> ToSkewSymmetricMatrix<T>(this Vector<T, D3> v)
+		{
+			var result = new Matrix<T, D3, D3>.Builder();
+			result[0, 1] = Scalar<T>.Negate(v[2]);
+			result[0, 2] = v[1];
+			result[1, 0] = v[2];
+			result[1, 2] = Scalar<T>.Negate(v[0]);
+			result[2, 0] = Scalar<T>.Negate(v[1]);
+			result[2, 1] = v[0];
+			return result.ToMatrix();
+		}
 
 		public static double GetLength<Dim>(this Vector<int, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
 		public static double GetLength<Dim>(this Vector<long, Dim> vector) where Dim : IDimensionProvider, new() => Math.Sqrt(vector * vector);
@@ -375,21 +383,20 @@ namespace ArgusLib.Numerics
 			return v / v.GetLength();
 		}
 
-		//public static Matrix<T, Dim1, Dim2> TensorProduct<T, Dim1, Dim2>(Vector<T, Dim1> u, Vector<T, Dim2> v)
-		//	where T : struct, IScalar<T>
-		//	where Dim1 : IDimensionProvider, new()
-		//	where Dim2 : IDimensionProvider, new()
-		//{
-		//	if (u.IsZero || v.IsZero)
-		//		return new Matrix<T, Dim1, Dim2>();
-		//	var builder = new Matrix<T, Dim1, Dim2>.Builder();
-		//	for (int row = 0; row < Vector<T, Dim1>.Dimension; row++)
-		//	{
-		//		for (int col = 0; col < Vector<T, Dim2>.Dimension; col++)
-		//			builder[row, col] = u[row].Multiply(v[col]);
-		//	}
-		//	return builder.ToMatrix();
-		//}
+		public static Matrix<T, Dim1, Dim2> TensorProduct<T, Dim1, Dim2>(Vector<T, Dim1> u, Vector<T, Dim2> v)
+			where Dim1 : IDimensionProvider, new()
+			where Dim2 : IDimensionProvider, new()
+		{
+			if (u.IsZero || v.IsZero)
+				return new Matrix<T, Dim1, Dim2>();
+			var builder = new Matrix<T, Dim1, Dim2>.Builder();
+			for (int row = 0; row < Vector<T, Dim1>.Dimension; row++)
+			{
+				for (int col = 0; col < Vector<T, Dim2>.Dimension; col++)
+					builder[row, col] = Scalar<T>.Multiply(u[row], v[col]);
+			}
+			return builder.ToMatrix();
+		}
 
 		/// <summary>
 		/// Sets all elements which have no effect when added to the element with the maximum absolute value
