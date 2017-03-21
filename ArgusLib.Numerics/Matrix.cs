@@ -186,20 +186,6 @@ namespace ArgusLib.Numerics
 			return result.ToVector();
 		}
 
-		public Matrix<TOther, ColDim, RowDim> Cast<TOther>(Func<T, TOther> cast)
-		{
-			if (_elements == null)
-				return Matrix<TOther, ColDim, RowDim>.Zero;
-
-			TOther[,] elements = new TOther[RowCount, ColumnCount];
-			for (int row = 0; row < RowCount; row++)
-			{
-				for (int col = 0; col < ColumnCount; col++)
-					elements[row, col] = cast(_elements[row, col]);
-			}
-			return new Matrix<TOther, ColDim, RowDim>(elements, false);
-		}
-
 		public static Matrix<T, ColDim, RowDim> operator *(T scalar, Matrix<T, ColDim, RowDim> matrix)
 		{
 			if (matrix._elements == null || Scalar<T>.AreEqual(scalar, Scalar<T>.Zero))
@@ -264,6 +250,29 @@ namespace ArgusLib.Numerics
 		public bool Equals(Matrix<T, ColDim, RowDim> other) => this == other;
 		public override bool Equals(object obj) => obj is Matrix<T, ColDim, RowDim> ? (Matrix<T, ColDim, RowDim>)obj == this : false;
 		public override int GetHashCode() => _elements?.GetHashCode() ?? 0;
+
+		public Matrix<T, SameColDim, SameRowDim> As<SameColDim, SameRowDim>()
+			where SameColDim : IDimensionProvider, new()
+			where SameRowDim : IDimensionProvider, new()
+		{
+			if (Matrix<ColDim,RowDim>.ColumnDimension != Matrix<SameColDim, SameRowDim>.ColumnDimension || Matrix<ColDim, RowDim>.RowDimension != Matrix<SameColDim, SameRowDim>.RowDimension)
+				throw new InvalidOperationException("Dimension mismatch");
+			return new Matrix<T, SameColDim, SameRowDim>(_elements, false);
+		}
+
+		public Matrix<TOther, ColDim, RowDim> Cast<TOther>(Func<T, TOther> cast)
+		{
+			if (_elements == null)
+				return Matrix<TOther, ColDim, RowDim>.Zero;
+
+			TOther[,] elements = new TOther[RowCount, ColumnCount];
+			for (int row = 0; row < RowCount; row++)
+			{
+				for (int col = 0; col < ColumnCount; col++)
+					elements[row, col] = cast(_elements[row, col]);
+			}
+			return new Matrix<TOther, ColDim, RowDim>(elements, false);
+		}
 
 		IEnumerator<T> IEnumerable<T>.GetEnumerator()
 		{

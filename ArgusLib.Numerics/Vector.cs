@@ -12,11 +12,16 @@ namespace ArgusLib.Numerics
 		int Dimension { get; }
 	}
 
+	public static class Vector<Dim> where Dim:IDimensionProvider,new()
+	{
+		public static readonly int Dimension = new Dim().Dimension;
+	}
+
 	public struct Vector<T, Dim> : IEquatable<Vector<T, Dim>>, IEnumerable<T>
 		where Dim : IDimensionProvider, new()
 	{
 		public static Vector<T, Dim> Zero { get { return new Vector<T, Dim>(); } }
-		public static readonly int Dimension = new Dim().Dimension;
+		public static int Dimension => Vector<Dim>.Dimension;
 		readonly T[] _elements;
 
 		public bool IsZero { get { return _elements == null; } }
@@ -157,11 +162,11 @@ namespace ArgusLib.Numerics
 		public override bool Equals(object obj) => obj is Vector<T, Dim> ? (Vector<T, Dim>)obj == this : false;
 		public override int GetHashCode() => _elements?.GetHashCode() ?? 0;
 
-		public Vector<T, TSameDimension> To<TSameDimension>() where TSameDimension : IDimensionProvider, new()
+		public Vector<T, SameDim> As<SameDim>() where SameDim : IDimensionProvider, new()
 		{
-			if (Vector<T, TSameDimension>.Dimension != Dimension)
+			if (Vector<Dim>.Dimension != Vector<SameDim>.Dimension)
 				throw new InvalidOperationException("Dimension mismatch");
-			return new Vector<T, TSameDimension>(_elements, false);
+			return new Vector<T, SameDim>(_elements, false);
 		}
 
 		public Vector<TOther, Dim> Cast<TOther>(Func<T, TOther> cast)
