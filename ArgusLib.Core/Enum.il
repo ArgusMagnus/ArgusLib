@@ -1,5 +1,4 @@
-﻿.class public abstract auto ansi sealed beforefieldinit ArgusLib.EnumExtensions
-       extends [System.Runtime]System.Object
+﻿.class public abstract auto ansi sealed beforefieldinit ArgusLib.EnumExtensions extends [System.Runtime]System.Object
 {
 	.custom instance void [System.Runtime]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
 

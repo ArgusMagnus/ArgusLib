@@ -7,6 +7,7 @@ License: Microsoft Reciprocal License (MS-RL)
 #endregion
 using System;
 using ArgusLib.Diagnostics.Tracing;
+using System.Threading;
 
 namespace ArgusLib
 {
